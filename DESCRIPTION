@@ -1,7 +1,7 @@
 Package: GeoMXAnalysisWorkflow
-Title: 
+Title: GeoMXAnalysisWorkflow
 Version: 0.1.0
-Author@R:
+Authors@R:
     c(
       person(
         "Ning",
@@ -18,16 +18,15 @@ Author@R:
         comment = c(ORCID = '0000-0001-9695-7218')
       ),
       person(
-        "Melissa",
+        "Melissa J.",
         "Davis",
-        "J.",
         email = "davis.m@wehi.edu.au",
         role = c("aut"),
         comment = c(ORCID = '0000-0003-4864-7033')
       )
     )
-Description: This workflow package shows how transcriptomic signatures can be used
-  to infer phenotypes. 
+Description: Blah
+Maintainer: Ning Liu <liu.n@wehi.edu.au>
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: false
@@ -55,5 +54,5 @@ Suggests:
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Language: en-US
-URL: 
-BugReports: 
+URL: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow
+BugReports: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow/issues
