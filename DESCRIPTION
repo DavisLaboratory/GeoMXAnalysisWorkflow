@@ -1,28 +1,60 @@
-Package: BuildABiocWorkshop
-Title: Bioconductor or R Workshop Template and Github Actions
-Version: 2.0.0
-Authors@R: 
-    person(given = "Sean",
-           family = "Davis",
-           role = c("aut", "cre"),
-           email = "seandavi@gmail.com",
-           comment = c(ORCID = "0000-0002-8991-6458"))
-Description: This package serves as a template for using github actions to 
-    prepare a Bioconductor Workshop package for use. In particular,
-    a pkgdown website and docker image are generated based on workflow 
-    settings. 
-License: MIT + file LICENSE
+Package: GeoMXAnalysisWorkflow
+Title: GeoMXAnalysisWorkflow
+Version: 0.1.0
+Authors@R:
+    c(
+      person(
+        "Ning",
+        "Liu",
+        email = "liu.n@wehi.edu.au",
+        role = c("aut", "cre"),
+        comment = c(ORCID = '0000-0002-9487-9305')
+      ),
+      person(
+        "Chin Wee",
+        "Tan",
+        email = "cwtan@wehi.edu.au",
+        role = c("aut"),
+        comment = c(ORCID = '0000-0001-9695-7218')
+      ),
+      person(
+        "Melissa J.",
+        "Davis",
+        email = "davis.m@wehi.edu.au",
+        role = c("aut"),
+        comment = c(ORCID = '0000-0003-4864-7033')
+      )
+    )
+Description: Blah
+Maintainer: Ning Liu <liu.n@wehi.edu.au>
+License: GPL (>= 3)
 Encoding: UTF-8
-LazyData: true
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.0
+LazyData: false
+Workflow: True
+biocViews: GeneExpressionWorkflow, Workflow
+VignetteBuilder: knitr
 Depends: 
-    Biobase
+    R (>= 4.2)
+Imports: 
+    Biobase,
+    edgeR,
+    ggplot2,
+    GSEABase,
+    msigdb,
+    SummarizedExperiment,
+    SpatialExperiment,
+    vissE,
+    ExperimentHub,
+    igraph,
+    patchwork
 Suggests: 
     knitr,
-    rmarkdown,
-    pkgdown
-URL: https://seandavi.github.io/BuildABiocWorkshop/
-BugReports: https://github.com/seandavi/BuildABiocWorkshop/issues/new/choose
+    prettydoc,
+    rmarkdown
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Language: en-US
+URL: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow
+BugReports: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow/issues
 VignetteBuilder: knitr
-DockerImage: ghcr.io/seandavi/buildabiocworkshop:latest
+DockerImage: 
