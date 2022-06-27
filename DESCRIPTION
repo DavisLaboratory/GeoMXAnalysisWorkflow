@@ -35,7 +35,6 @@ biocViews: GeneExpressionWorkflow, Workflow
 VignetteBuilder: knitr
 Depends: 
     R (>= 4.2)
-Imports: 
     Biobase,
     edgeR,
     ggplot2,
@@ -57,4 +56,4 @@ Language: en-US
 URL: https://davislaboratory.github.io/GeoMXAnalysisWorkflow/
 BugReports: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow/issues
 VignetteBuilder: knitr
-DockerImage: 
+DockerImage: ghcr.io/ningbioinfo/geomxanalysisworkflow:latest
