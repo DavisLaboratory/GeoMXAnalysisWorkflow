@@ -1,7 +1,17 @@
-url: ~
+url: https://DavisLaboratory.github.io/GeoMXAnalysisWorkflow
+
 template:
-    bootstrap: 5
-    bootswatch: lux
-    bslib:
-      pkgdown-nav-height: 100px
+  params:
+    bootswatch: flatly
+    #ganalytics: UA-99999999-9
+
+home:
+  title: "GeoMXAnalysisWorkflow"
+  type: inverse
+
+
+navbar:
+  right:
+   - icon: fa-github
+     href: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow
 

@@ -90,9 +90,9 @@ In this workshop, we first use the `standR` to process a published GeoMX WTA dat
 
 Data we are using in this workshop is a published GeoMX whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD).
 
-NanoString GeoMx DSP dataset of diabetic kidney disease (DKD) vs healthy kidney tissue.  **Seven slides** were analyzed, **4 DKD and 3 healthy**. ROIs were focused on two different parts of a kidney’s structure: **tubules or glomeruli**. Individual glomeruli were identified by a pathologist as either **relatively healthy or diseased** regardless if the tissue was DKD or healthy. Tubule ROIs were segmented into **distal (PanCK) and proximal (neg) tubules**. While both distal and proximal tubules are called tubules, they perform very different functions in the kidney.
+In this dataset, **Seven slides** were analyzed, including **4 DKD and 3 healthy** slides. ROIs were focused on two different parts of a kidney’s structure: **tubules or glomeruli**. Individual glomeruli were identified by a pathologist as either **relatively healthy or diseased** regardless if the tissue was DKD or healthy. Tubule ROIs were segmented into **distal (PanCK) and proximal (neg) tubules**. While both distal and proximal tubules are called tubules, they perform very different functions in the kidney.
 
-Data can be retireved by querying the `ExperimentHub`. The query below searches for all objects in the hub associated with the search term "standR". Information about three files available in the `standR` package is retrieved.
+This GeoMX DSP data can be retireved by querying the `ExperimentHub`. The query below searches for all objects in the hub associated with the search term "standR". Here, Three files that are associated with the DKD GeoMX data in the `standR` package are retrieved.
 
 ```{r}
 library(ExperimentHub)
@@ -105,7 +105,7 @@ sampleAnnoFile <- eh[["EH7365"]]
 featureAnnoFile <- eh[["EH7366"]]
 ```
 
-After getting the files from `ExperimentHub`, we can have a first look at the format and content of the three files, they are the usual files we can obtain from Nanostring.
+We can have a first glance at the format of the three files, they are the usual files we can obtain from the Nanostring.
 
 The `countFile` is a tab-delimited file, it contains the count table (features by samples) we generally see in transcriptomics analysis.
 
@@ -133,20 +133,21 @@ As we described in the introduction, there are many advantages of using a mature
 
 Hence, the first step in the `standR` package is to construct a `SpatialExperiment` object that includes all the information about the data. Here we can use the function `readGeoMX` to do so. For more information about the `SpatialExperiment` infrastructure, see [here](http://www.bioconductor.org/packages/release/bioc/html/SpatialExperiment.html).
 
-Notes: if you plan to use `readGeoMx` to construct your `SpatialExperiment` object with your own data, make sure that the files you use as inputs are tab-delimited files.
-
+**Notes: if you plan to use `readGeoMx` to construct your `SpatialExperiment` object with your own data, make sure that the files you use as inputs are tab-delimited files.**
 
 ```{r message=FALSE}
+library(standR)
+
 spe <- readGeoMx(countFile, sampleAnnoFile, featureAnnoFile = featureAnnoFile)
 ```
 
-We can see that our datasets have 18503 genes and 231 ROIs.
+We can check out some basic informations about the dataset by typing the object directly. We can see that the dataset have 18503 genes and 231 ROIs.
 
 ```{r}
 spe
 ```
 
-In the `spatialExperiment` object, the raw count data is stored in the `counts` assay slot, while the log-CPM (count per million) of the data is calculated and stored in the `logcounts` assay of the object.
+In the `spatialExperiment` object, the raw count data is stored in the `counts` assay slot, while the log-CPM (count per million) of the data is calculated by default with the `readGeoMX` function and stored in the `logcounts` assay of the object.
 
 
 ```{r}
@@ -188,7 +189,7 @@ metadata(spe)$NegProbes[1:5,1:5]
 
 ## Import from DGEList object
 
-Alternatively, `standR` provided a function to generate a spatial experiment object from a DGEList object, which would be useful for users who are familar with the `edgeR` package.
+Alternatively, `standR` provided a function to generate a spatial experiment object from a DGEList object, which would be useful for users who are familiar with the `edgeR` package.
 
 ```{r}
 dge <- edgeR::SE2DGEList(spe)
@@ -204,7 +205,7 @@ spe2
 
 # Quality control
 
-The quality control (QC) procedures are consisting of three major steps:
+The quality control (QC) for the GeoMX transcriptome data are consisting of three major steps:
 
 1. **Inspection of the sample metadata**: sample metadata can be seen as 
 tabular-like format using the `colData` function, however here we aim to 
@@ -224,7 +225,7 @@ sufficiently large counts in the DE analysis can increase statistical power
 while reduce multiple testing burden.
 
 3. **ROI level QC**: at ROI level, we aim at identify low-quality ROIs with 
-relatively small library size and low cell count. Problematic ROIs that are 
+relatively small library size (total feature count) and low cell count. Problematic ROIs that are 
 not removed could show up as separate clusters in PCA/UMAPs and further affect 
 the comparisons in DE analysis. 
 
