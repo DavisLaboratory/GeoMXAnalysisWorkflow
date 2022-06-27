@@ -27,7 +27,7 @@ Authors@R:
     )
 Description: A workshop demostrating the analysis workflow of GeoMX transcriptmoics data.
 Maintainer: Ning Liu <liu.n@wehi.edu.au>
-License: GPL (>= 3)
+License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
 LazyData: false
 Workflow: True
@@ -35,6 +35,7 @@ biocViews: GeneExpressionWorkflow, Workflow
 VignetteBuilder: knitr
 Depends: 
     R (>= 4.2)
+Imports:
     Biobase,
     edgeR,
     ggplot2,
@@ -45,7 +46,17 @@ Depends:
     vissE,
     ExperimentHub,
     igraph,
-    patchwork
+    patchwork,
+    ggalluvial,
+    ggrepel,
+    limma,
+    standR,
+    tidyverse,
+    dplyr,
+    scico,
+    DT,
+    scater,
+    RColorBrewer
 Suggests: 
     knitr,
     prettydoc,
@@ -55,5 +66,4 @@ RoxygenNote: 7.1.2
 Language: en-US
 URL: https://davislaboratory.github.io/GeoMXAnalysisWorkflow/
 BugReports: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow/issues
-VignetteBuilder: knitr
 DockerImage: ghcr.io/ningbioinfo/geomxanalysisworkflow:latest

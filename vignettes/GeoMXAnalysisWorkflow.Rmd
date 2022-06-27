@@ -681,6 +681,7 @@ We can then visualise the DE genes using plots such as volcano plot and MA plot.
 
 ```{r}
 library(ggrepel)
+library(tidyverse)
 
 de_results_DvCinGab <- topTable(efit, coef = 1, sort.by = "P", n = Inf)
 
