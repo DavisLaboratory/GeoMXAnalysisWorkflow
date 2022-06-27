@@ -1,0 +1,60 @@
+Package: GeoMXAnalysisWorkflow
+Title: GeoMXAnalysisWorkflow
+Version: 0.1.0
+Authors@R:
+    c(
+      person(
+        "Ning",
+        "Liu",
+        email = "liu.n@wehi.edu.au",
+        role = c("aut", "cre"),
+        comment = c(ORCID = '0000-0002-9487-9305')
+      ),
+      person(
+        "Chin Wee",
+        "Tan",
+        email = "cwtan@wehi.edu.au",
+        role = c("aut"),
+        comment = c(ORCID = '0000-0001-9695-7218')
+      ),
+      person(
+        "Melissa J.",
+        "Davis",
+        email = "davis.m@wehi.edu.au",
+        role = c("aut"),
+        comment = c(ORCID = '0000-0003-4864-7033')
+      )
+    )
+Description: A workshop demostrating the analysis workflow of GeoMX transcriptmoics data.
+Maintainer: Ning Liu <liu.n@wehi.edu.au>
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: false
+Workflow: True
+biocViews: GeneExpressionWorkflow, Workflow
+VignetteBuilder: knitr
+Depends: 
+    R (>= 4.2)
+Imports: 
+    Biobase,
+    edgeR,
+    ggplot2,
+    GSEABase,
+    msigdb,
+    SummarizedExperiment,
+    SpatialExperiment,
+    vissE,
+    ExperimentHub,
+    igraph,
+    patchwork
+Suggests: 
+    knitr,
+    prettydoc,
+    rmarkdown
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Language: en-US
+URL: https://davislaboratory.github.io/GeoMXAnalysisWorkflow/
+BugReports: https://github.com/DavisLaboratory/GeoMXAnalysisWorkflow/issues
+VignetteBuilder: knitr
+DockerImage: 
