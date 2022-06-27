@@ -80,12 +80,9 @@ There are three major advantages of using the `standR` package to analyse the Ge
 
 3. Batch effect is commonly seen in transcriptome dataset, especially in GeoMX DSP data due to the experimental design of slide usage, the package currently provides three batch correction methods that can remove the unwanted batch effect and provides statistics to assess the correction process.
 
-In this workshop, 
-To do so, we use gene-set enrichment analysis, a group of methods designed to identify enriched functions represented by collections of genes known as gene-sets. This workflow will demonstrate functional analysis of transcriptomic data using the molecular signatures database (through the `msigdb` R/Bioconductor package) and a gene-set enrichment method, `singscore`. It will also demonstrate how higher order biological themes can be identified in data using the `vissE`package. It will begin by loading gene expression data and gene-sets from the `ExperimentHub` using the `emtdata` and `msigdb` R/Bioconductor packages. Molecular phenotypes representing the functional characterisitic of Samples will be identified using the single-sample gene-set enrichment method, singscore. Finally, higher-order functional themes will be identified using vissE.
+In this workshop, we first use the `standR` to process a published GeoMX WTA dataset in a workflow fashion. This will demonstrate our recommended flow to process and analyse the GeoMX transcriptomics data. Then, we will perform the DE analysis of the processed data using the `limma-voom` pipeline, followed by a gene-set enrichment analysis using `fry` and visualisation of the results using `vissE`.
 
-# Description of the biological problem
 
-**Generally, what are we expect from a GeoMX dataset.**
 
 # Processing and analysing GeoMX transcriptomics data with standR
 
@@ -93,7 +90,7 @@ To do so, we use gene-set enrichment analysis, a group of methods designed to id
 
 Data we are using in this workshop is a published GeoMX whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD).
 
-NanoString GeoMx DSP dataset of diabetic kidney disease (DKD) vs healthy kidney tissue.  **Seven slides** were analyzed, **4 DKD and 3 healthy**. Regions of Interest (ROI) were focused two different parts of a kidney’s structure: **tubules or glomeruli**. Individual glomeruli were identified by a pathologist as either **relatively healthy or diseased** regardless if the tissue was DKD or healthy. Tubule ROIs were segmented into **distal (PanCK) and proximal (neg) tubules**. While both distal and proximal tubules are called tubules, they perform very different functions in the kidney.
+NanoString GeoMx DSP dataset of diabetic kidney disease (DKD) vs healthy kidney tissue.  **Seven slides** were analyzed, **4 DKD and 3 healthy**. ROIs were focused on two different parts of a kidney’s structure: **tubules or glomeruli**. Individual glomeruli were identified by a pathologist as either **relatively healthy or diseased** regardless if the tissue was DKD or healthy. Tubule ROIs were segmented into **distal (PanCK) and proximal (neg) tubules**. While both distal and proximal tubules are called tubules, they perform very different functions in the kidney.
 
 Data can be retireved by querying the `ExperimentHub`. The query below searches for all objects in the hub associated with the search term "standR". Information about three files available in the `standR` package is retrieved.
 
@@ -108,31 +105,36 @@ sampleAnnoFile <- eh[["EH7365"]]
 featureAnnoFile <- eh[["EH7366"]]
 ```
 
-We can take a glance the format and content of the three files, they are the usual files we can obtain from the Nanostring.
+After getting the files from `ExperimentHub`, we can have a first look at the format and content of the three files, they are the usual files we can obtain from Nanostring.
 
-The `countFile` contains the count table we generally see in transcriptomics analysis, with samples (here are ROIs) as columns and features (genes) as row.
+The `countFile` is a tab-delimited file, it contains the count table (features by samples) we generally see in transcriptomics analysis.
 
 ```{r}
-read.delim(countFile, nrows = 10)[,1:5]
+read.delim(countFile, nrows = 5)[,1:3]
 ```
 
 
 
-The `sampleAnnoFile` contains all the metadata of the samples.
+The `sampleAnnoFile` is a tab-delimited file, contains all the metadata of the samples.
 
 ```{r}
-read.delim(sampleAnnoFile, nrows = 10)[,1:8]
+read.delim(sampleAnnoFile, nrows = 5)[,1:5]
 ```
 
 
-The `featureAnnoFile` contains all the metadata of the genes.
+The `featureAnnoFile` is a tab-delimited file, contains all the metadata of the genes.
 
 ```{r}
-read.delim(featureAnnoFile, nrows = 10)
+read.delim(featureAnnoFile, nrows = 5)
 ```
 
 
-Then, we can construct the `SpatialExperiment` object based on these files using the function `readGeoMX`. For more information about the `SpatialExperiment` infrastructure, see [here](http://www.bioconductor.org/packages/release/bioc/html/SpatialExperiment.html).
+As we described in the introduction, there are many advantages of using a mature infrastructure throughout out the analysis, such as being compatible with many other tools.
+
+Hence, the first step in the `standR` package is to construct a `SpatialExperiment` object that includes all the information about the data. Here we can use the function `readGeoMX` to do so. For more information about the `SpatialExperiment` infrastructure, see [here](http://www.bioconductor.org/packages/release/bioc/html/SpatialExperiment.html).
+
+Notes: if you plan to use `readGeoMx` to construct your `SpatialExperiment` object with your own data, make sure that the files you use as inputs are tab-delimited files.
+
 
 ```{r message=FALSE}
 spe <- readGeoMx(countFile, sampleAnnoFile, featureAnnoFile = featureAnnoFile)
@@ -177,7 +179,7 @@ rowData(spe)
 By default, the `readGeoMx` function will remove the negative probe, the one with name "NegProbe-WTX", in the count table and put it in the metadata of the object. User can turn this off by specifying `hasNegProbe = FALSE` in the function.
 
 ```{r}
-metadata(spe)$NegProbes
+metadata(spe)$NegProbes[1:5,1:5]
 ```
 
 
@@ -866,6 +868,7 @@ dovissE <- function(fry_out, de_table, topN = 6, title = "", specific_clusters =
     
 }
 ```
+
 
 ```{r fig.width=15, fig.height=7}
 dovissE(fry_res_sig, de_genes_toptable_DvCinGab, title = "DKD vs Normal in abnormal glomerulus" )
