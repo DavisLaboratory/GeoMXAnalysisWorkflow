@@ -1,0 +1,11 @@
+pandoc: 2.17.1.1
+pkgdown: 2.0.5
+pkgdown_sha: ~
+articles:
+  HOWTO_BUILD_WORKSHOP: HOWTO_BUILD_WORKSHOP.html
+  workshop_example: workshop_example.html
+last_built: 2022-06-27T02:57Z
+urls:
+  reference: https://seandavi.github.io/BuildABiocWorkshop/reference
+  article: https://seandavi.github.io/BuildABiocWorkshop/articles
+
