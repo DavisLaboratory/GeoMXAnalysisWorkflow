@@ -56,7 +56,8 @@ Imports:
     scico,
     DT,
     scater,
-    RColorBrewer
+    RColorBrewer,
+    ggpubr
 Suggests: 
     knitr,
     prettydoc,
