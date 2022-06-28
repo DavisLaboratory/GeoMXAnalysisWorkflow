@@ -57,7 +57,8 @@ Imports:
     DT,
     scater,
     RColorBrewer,
-    ggpubr
+    ggpubr,
+    uwot
 Suggests: 
     knitr,
     prettydoc,
