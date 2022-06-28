@@ -247,14 +247,21 @@ as abnormal and healthy, and tubule are classified as neg and PanCK.
 We therefore merge the region-related annotations to avoid collinearity, which 
 can affect the process of batch correction.
 
+```{r}
+colData(spe)$regions <- paste0(colData(spe)$region,"_",colData(spe)$SegmentLabel) %>%
+  gsub("_Geometric Segment","",.) %>%
+  paste0("_",colData(spe)$pathology) %>%
+  gsub("_NA","",.)
+
+
+colData(spe)$regions %>% table()
+```
+
+
+Re-check the sample annotation, we can then have a better idea of the data and what comparisons we can establish.
+
 
 ```{r}
-colData(spe)$regions <- paste0(colData(spe)$region,"_",colData(spe)$SegmentLabel) |> 
-  (\(.) gsub("_Geometric Segment","",.))() |>
-  paste0("_",colData(spe)$pathology) |>
-  (\(.) gsub("_NA","_ns",.))()
-
-
 plotSampleInfo(spe, column2plot = c("SlideName","disease_status","regions"))
 ```
 

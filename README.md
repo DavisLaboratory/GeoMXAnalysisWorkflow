@@ -68,10 +68,10 @@ The workshop is designed for R `4.2` and Bioconductor `3.15` and can be installe
 install.packages('remotes')
 
 # Install workshop package
-remotes::install_github("DavisLaboratory/GenesetAnalysisWorkflow", build_vignettes = TRUE)
+remotes::install_github("DavisLaboratory/GeoMXAnalysisWorkflow", build_vignettes = TRUE)
 
 # To view vignettes
-library(GenesetAnalysisWorkflow)
+library(GeoMXAnalysisWorkflow)
 browseVignettes("GeoMXAnalysisWorkflow")
 ```
 
