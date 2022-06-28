@@ -52,17 +52,18 @@ Imports:
     limma,
     standR,
     tidyverse,
-    dplyr,
     scico,
     DT,
     scater,
-    RColorBrewer,
     ggpubr,
     uwot
 Suggests: 
     knitr,
     prettydoc,
-    rmarkdown
+    rmarkdown,
+    statmod,
+    RColorBrewer,
+    dplyr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Language: en-US
