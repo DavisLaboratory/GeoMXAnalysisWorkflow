@@ -79,15 +79,12 @@ browseVignettes("GeoMXAnalysisWorkflow")
 ## To use the resulting image:
 
 ```sh
-docker run -e PASSWORD=<choose_a_password_for_rstudio> -p 8787:8787 YOURDOCKERIMAGENAME
+docker run -e PASSWORD=<choose_a_password_for_rstudio> -p 8787:8787 ghcr.io/ningbioinfo/geomxanalysisworkflow:latest
 ```
-Once running, navigate to http://localhost:8787/ and then login with `rstudio`:`yourchosenpassword`. 
 
-To try with **this** repository docker image:
+Once running, navigate to http://localhost:8787/ and then login with Username:rstudio and Password:password.
 
-```sh
-docker run -e PASSWORD=abc -p 8787:8787 ghcr.io/seandavi/buildabiocworkshop
-```
+You should see the Rmarkdown file with all the workshop code which you can run.
 
 *NOTE*: Running docker that uses the password in plain text like above exposes the password to others 
 in a multi-user system (like a shared workstation or compute node). In practice, consider using an environment 
