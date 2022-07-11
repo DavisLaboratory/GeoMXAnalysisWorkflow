@@ -608,6 +608,9 @@ the function.
 
 
 ```{r fig.width=10, fig.height=9}
+colData(spe)$biology <- paste0(colData(spe)$disease_status, "_", colData(spe)$regions)
+
+
 for(i in seq(5)){
   spe_ruv <- geomxBatchCorrection(spe, factors = "biology", 
                    NCGs = metadata(spe)$NCGs, k = i)
