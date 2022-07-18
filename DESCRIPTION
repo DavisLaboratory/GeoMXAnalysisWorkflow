@@ -63,7 +63,8 @@ Suggests:
     rmarkdown,
     statmod,
     RColorBrewer,
-    dplyr
+    dplyr,
+    pkgdown
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
 Language: en-US
