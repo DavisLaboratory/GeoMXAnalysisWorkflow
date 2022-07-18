@@ -73,7 +73,7 @@
 </h2>
 <p>This workshop will focus on performing analysis of spatial transcriptomics data from the Nanostring GeoMX DSP platform. We will perform data QC, normalisation and batch correction using methods in the <code>standR</code> package to analyse a publicly available GeoMX WTA dataset. Following this, we will perform differential expression analysis using tools from the <code>limma</code> and <code>edgeR</code> packages. Finally, we will carry out a gene set enrichment analysis (GSEA) using <code>fry</code> from the <code>limma</code> package and visualise and interpret the GSEA results using the <code>vissE</code> package.</p>
 <p>The workshop will be organised into two broad sections: * Processing and analysing the data using standR * Performing DE analysis and GSEA</p>
-<p>Detailed material can be found <a href="linktohtml">here</a>.</p>
+<p>Detailed material can be found <a href="https://davislaboratory.github.io/GeoMXAnalysisWorkflow/" class="external-link">here</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="pre-requisites">Pre-requisites<a class="anchor" aria-label="anchor" href="#pre-requisites"></a>
@@ -174,10 +174,9 @@
 <div class="section level2">
 <h2 id="to-use-the-resulting-image">To use the resulting image:<a class="anchor" aria-label="anchor" href="#to-use-the-resulting-image"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-e</span> PASSWORD=<span class="op">&lt;</span>choose_a_password_for_rstudio<span class="op">&gt;</span> -p 8787:8787 YOURDOCKERIMAGENAME</span></code></pre></div>
-<p>Once running, navigate to <a href="http://localhost:8787/" class="external-link uri">http://localhost:8787/</a> and then login with <code>rstudio</code>:<code>yourchosenpassword</code>.</p>
-<p>To try with <strong>this</strong> repository docker image:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-e</span> PASSWORD=abc <span class="at">-p</span> 8787:8787 ghcr.io/seandavi/buildabiocworkshop</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run <span class="at">-e</span> PASSWORD=<span class="op">&lt;</span>choose_a_password_for_rstudio<span class="op">&gt;</span> -p 8787:8787 ghcr.io/ningbioinfo/geomxanalysisworkflow:latest</span></code></pre></div>
+<p>Once running, navigate to <a href="http://localhost:8787/" class="external-link uri">http://localhost:8787/</a> and then login with Username:rstudio and Password:password.</p>
+<p>You should see the Rmarkdown file with all the workshop code which you can run.</p>
 <p><em>NOTE</em>: Running docker that uses the password in plain text like above exposes the password to others in a multi-user system (like a shared workstation or compute node). In practice, consider using an environment variable instead of plain text to pass along passwords and other secrets in docker command lines.</p>
 </div>
 </div>
@@ -230,7 +229,7 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.5.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer>
