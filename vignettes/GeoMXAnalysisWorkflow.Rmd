@@ -636,6 +636,11 @@ plotPairPCA(spe_ruv, assay = 2, color = disease_status, shape = regions, title =
 ```
 
 
+```{r fig.width=10, fig.height=9}
+plotPairPCA(spe_ruv, assay = 2, color = SlideName, title = "RUV4, k = 4", n_dimension = 4)
+```
+
+
 
 ### Correction method: limma
 
@@ -655,9 +660,10 @@ interest includes "disease_status" and "regions".
 
 
 ```{r}
+
 spe_lrb <- geomxBatchCorrection(spe,
                        batch = colData(spe)$SlideName, method = "Limma",
-                       design = model.matrix(~ disease_status + regions, 
+                       design = model.matrix(~disease_status + regions, 
                                              data = colData(spe))[,-1])
 ```
 
@@ -665,15 +671,13 @@ spe_lrb <- geomxBatchCorrection(spe,
 Once again, we use the respective QC plots like PCA to inspect and assess the
 effectiveness of the applied batch correction process.
 
-In this instance, using `limma::removeBatchEffect` approach has effectively 
-separated the samples based on the disease status on PC1. Furthermore, the 
-samples are also reasonable well clusters and separated based on tissue 
-regions (particular for tubules) across PC2 and PC3
+In this instance, using `limma::removeBatchEffect` approach seems to be over-corrected since we specifying the `batch` parameter as slide, however slide is confounded with the biology of interest.  
 
 
-```{r}
+```{r fig.width=10, fig.height=9}
 plotPairPCA(spe_lrb, assay = 2, color = disease_status, shape = regions, title = "Limma removeBatch", n_dimension = 4)
 ```
+
 
 
 
@@ -728,7 +732,7 @@ compared to that for the limma-corrected data. Therefore, for the downstream
 differential expression analysis, we would suggest using  RUV4 as the batch 
 correction method for this specific dataset.
 
-```{r eval=FALSE}
+```{r}
 plotRLExpr(spe_ruv, assay = 2, color = SlideName) + ggtitle("RUV4")
 plotRLExpr(spe_lrb, assay = 2, color = SlideName) + ggtitle("Limma removeBatch")
 ```
@@ -736,76 +740,116 @@ plotRLExpr(spe_lrb, assay = 2, color = SlideName) + ggtitle("Limma removeBatch")
 
 # Differential expression analysis with limma-voom pipeline
 
-For the downstream analyses like differential expression analyses, standR does not provide specific functions. 
+For the downstream analyses such as differential expression analyses, standR does not provide specific functions. 
+
 Instead, we recommend incorporating the workflow with well established pipelines, such as `edgeR`, `limma-voom` or `DESeq2`. These pipelines uses linear modelling which borrow information from all genes, making it more appropriate for complex dataset with various experimental factors. A simple T-test is definitely not recommended for performing DE analysis of GeoMX DSP data.
 
 In this workshop, we'll demonstrate the DE analysis using the `limma-voom` pipeline.
 
-## Linear modelling
-
 We've shown in previous sections that for this dataset, using RUV4 with `k = 4` is the appropriate batch correction approach and is able to remove the batch effect and other undesired technical variations. To incorporate this correction into the linear model, we need to include the weight matrix generated from the function `geomxBatchCorrection` as covariates. The weight matrix can be found in the `colData`.
+
+
+```{r}
+colData(spe_ruv)[,seq(ncol(colData(spe_ruv))-3, ncol(colData(spe_ruv)))] |>
+  head()
+```
+
+## Establishing a design matrix and contrast
+
+To incorporate the `limma-voom` pipeline, we recommend using the `DGElist` infrastructure. Our `SpatialExperiment` can be easily transform into a `DGElist` object by using the `SE2DGEList` function from the `edgeR` package. For more information about `DGEList` see `?DGEList`.
 
 
 ```{r}
 library(edgeR)
 library(limma)
 
-dge <- edgeR::SE2DGEList(spe_ruv)
-
-design <- model.matrix(~0 + biology + ruv_W1 + ruv_W2 + ruv_W3 + ruv_W4, data = colData(spe_ruv))
-
-colnames(design) <- colnames(design) %>%
-  str_replace("biology","")
-
-colnames(design)
-
-keep <- filterByExpr(dge, design)
-dge_all <- dge[keep, ]
-
-dge_all <- estimateDisp(dge_all, design, robust=TRUE)
+dge <- SE2DGEList(spe_ruv)
 
 ```
 
 
-## Biological coefficient of variation
+In our analysis, it is of interest to see which genes are differential expressed in different tissue regions within different status of the samples, a design matrix is therefore set up with both the disease status (DKD and normal) and tissue regions (glomerulus_healthy, glomerulus_abnormal, tubule_PanCK and tubule_neg) information. We also add the W matrices resulted from the `RUV4` to the model matrix as covariates to use batch corrected data.
+
+We created the `biology` factor previously, which is a interacting factor between disease status and tissue regions, we therefore will use this directly. 
+
 
 ```{r}
-plotBCV(dge_all)
-bcv_df <- data.frame(
-  'BCV' = sqrt(dge_all$tagwise.dispersion),
-  'AveLogCPM' = dge_all$AveLogCPM,
-  'gene_id' = rownames(dge_all)
-)
-highbcv <- bcv_df$AveLogCPM > 7 & bcv_df$BCV > 0.8
-highbcv_df <- bcv_df[highbcv, ]
-points(highbcv_df$AveLogCPM, highbcv_df$BCV, col = "red")
-text(highbcv_df$AveLogCPM, highbcv_df$BCV, labels = highbcv_df$gene_id, pos = 4)
+design <- model.matrix(~0 + biology + ruv_W1 + ruv_W2 + ruv_W3 + ruv_W4, data = colData(spe_ruv))
+
+colnames(design)
 ```
+
+To simplify the factor name, here we edit the column name of the design matrix by removing the prefix "biology".
+
+```{r}
+colnames(design) <- gsub("^biology","",colnames(design))
+  
+colnames(design)
+
+```
+
+In this analysis, we will be looking at comparison between glomerulus_abnormal and tubule_neg in DKD patient. The contrast for pairwise comparisons between different groups are set up in using the `makeContrasts` function from `Limma`.
+
+
+```{r}
+contr.matrix <- makeContrasts(
+   DvCinGab = DKD_glomerulus_abnormal - DKD_tubule_neg,
+   levels = colnames(design))
+```
+
+It is recommended to filter out genes with low coverage in the dataset to allow a more accurate mean-variance relationship and reduce the number of statistical tests. Here we use the `filterByExpr` function from the `edgeR` package to filter genes based on the model matrix, while keeping as many genes as possible with worthwhile counts.
+
+
+
+```{r}
+keep <- filterByExpr(dge, design)
+```
+
+Here we can see that 17 genes are filtered.
+
+```{r}
+table(keep)
+
+dge_all <- dge[keep, ]
+```
+
 
 
 ## Differential expression
+
+In the `limma-voom` pipeline, linear modelling is carried out on the log-CPM values by using the `voom`, `lmFit`, `contrasts.fit` and `eBayes` function. If we want fold-change threshold we can also include the `treat` function to perform fold-change requirement to identify DE genes.
+
+**Notes: if we observe variation of patients (individuals) in the PCA plots previously after normalised/batch corrected. It is recommended to accoun for it by using the `duplicateCorrelation`, followed by passing the resulting correlation to the `lmFit` function.**
+
 
 ```{r}
 v <- voom(dge_all, design) 
 
 fit <- lmFit(v)
 
-contr.matrix <- makeContrasts(
-   DvCinGab = DKD_glomerulus_abnormal - normal_glomerulus_abnormal,
-   levels = colnames(design))
-
 fit_contrast <- contrasts.fit(fit, contrasts = contr.matrix)
 
 efit <- eBayes(fit_contrast, robust = TRUE)
 
-results_efit<- decideTests(efit, p.value = 0.05)
-summary_efit <- summary(results_efit)
+tfit <- treat(efit)
+
 ```
 
 
-### Visualization
+We can see that in the comparison between glomerulus_abnormal and tubule_neg in DKD patient, we found 472 up-regulated and 365 down-regulated DE genes with fold-change above 1.2 (by default).
 
-We can then visualise the DE genes using plots such as volcano plot and MA plot.
+
+```{r}
+results_efit<- decideTests(tfit, p.value = 0.05)
+summary_efit <- summary(results_efit)
+
+summary_efit
+```
+
+
+### Visualisation
+
+We can obtain the DE results by using the `TopTable` function.
 
 ```{r}
 library(ggrepel)
@@ -815,8 +859,11 @@ de_results_DvCinGab <- topTable(efit, coef = 1, sort.by = "P", n = Inf)
 
 de_genes_toptable_DvCinGab <- topTable(efit, coef = 1, sort.by = "P", n = Inf, p.value = 0.05)
 
+```
 
+We can then visualise the DE genes with MA plot.
 
+```{r}
 de_results_DvCinGab %>% 
   mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
@@ -829,10 +876,16 @@ de_results_DvCinGab %>%
   theme_bw() +
   xlab("Average log-expression") +
   ylab("Log-fold-change") +
-  ggtitle("DKD vs Normal in abnormal glomerulus (limma-voom)") +
+  ggtitle("Abnormal glomerulus vs. Tubule neg in DKD patients (limma-voom-treat)") +
   scale_color_manual(values = c("blue","gray","red")) +
   theme(text = element_text(size=15))
 
+```
+
+
+Or Volcano plot.
+
+```{r}
 de_results_DvCinGab %>% 
   mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
@@ -845,15 +898,22 @@ de_results_DvCinGab %>%
   theme_bw() +
   xlab("Fold change (log2)") +
   ylab("-log10(p-value)") +
-  ggtitle("DKD vs Normal in abnormal glomerulus (limma-voom)") +
+  ggtitle("Abnormal glomerulus vs. Tubule neg in DKD patients (limma-voom-treat)") +
   scale_color_manual(values = c("blue","gray","red")) +
   theme(text = element_text(size=15))
+
+```
+
+Or we can make a interactive table using the `DT` package.
+
+```{r}
+library(DT)
 
 updn_cols <- c(RColorBrewer::brewer.pal(6, 'Greens')[2], RColorBrewer::brewer.pal(6, 'Purples')[2])
 
 de_genes_toptable_DvCinGab %>% 
   dplyr::select(c("logFC", "AveExpr", "P.Value", "adj.P.Val")) %>%
-  DT::datatable(caption = 'Differentially expressed genes. DKD vs Normal in abnormal glomerulus (limma-voom)') %>%
+  DT::datatable(caption = 'Abnormal glomerulus vs. Tubule neg in DKD patients (limma-voom-treat)') %>%
   DT::formatStyle('logFC',
                 valueColumns = 'logFC',
                 backgroundColor = DT::styleInterval(0, rev(updn_cols))) %>%
@@ -862,7 +922,10 @@ de_genes_toptable_DvCinGab %>%
 
 # GSEA and visualisation with vissE
 
-Here we try to do GSEA with the DE genes using limma fry.
+If you're interested in whether some specific genes are DE in the contrast, you can extract them from the DE tables. However, if there isn't a specific list of genes, it is common to perform a gene sets enrichment analysis (GSEA) to find out the enriched gene sets, which might indicate relevant or interest biological patterns.
+
+There are many ways to perform GSEA, here we try to do GSEA with the DE genes using `fry` from the `limma` package.
+
 We select the following gene sets to conduct gene set enrichment analysis:
 
 * MSigDB Hallmarks - genesets from the hallmarks collection of MSigDB
@@ -874,6 +937,8 @@ We select the following gene sets to conduct gene set enrichment analysis:
 FDR < 0.05 indicates significantly enriched gene set.
 
 ## Load Gene sets
+
+We load the gene sets using the `msigdb` package, and extact only the gene sets we described above. This might take a few minutes to run.
 
 ```{r}
 
@@ -895,14 +960,14 @@ gsc <- c(subsetCollection(msigdb_hs, c('h')),
 
 ## Enrichment analysis
 
+Here are some pre-processing steps of the gene sets, basically we filter out gene sets with less than 5 genes, and creating indices vectors list for easy formatting after running fry.
+
 ```{r}
 fry_indices <- ids2indices(lapply(gsc, geneIds), rownames(v), remove.empty = FALSE)
 names(fry_indices) <- sapply(gsc, setName)
 
-
 gsc_category <- sapply(gsc, function(x) bcCategory(collectionType(x)))
 gsc_category <- gsc_category[sapply(fry_indices, length) > 5]
-
 
 gsc_subcategory <- sapply(gsc, function(x) bcSubCategory(collectionType(x)))
 gsc_subcategory <- gsc_subcategory[sapply(fry_indices, length) > 5]
@@ -910,6 +975,13 @@ gsc_subcategory <- gsc_subcategory[sapply(fry_indices, length) > 5]
 fry_indices <- fry_indices[sapply(fry_indices, length) > 5]
 
 names(gsc_category) = names(gsc_subcategory) = names(fry_indices)
+
+```
+
+
+Now we run `fry` with all the gene sets we filtered.
+
+```{r}
 
 fry_indices_cat <- split(fry_indices, gsc_category[names(fry_indices)])
 fry_res_out <- lapply(fry_indices_cat, function (x) {
@@ -930,9 +1002,30 @@ fry_res_sig <- post_fry_format(fry_res_out, gsc_category, gsc_subcategory) %>%
   filter(FDR < 0.05) 
 ```
 
+
+The output is a `data.frame` object. So we can either output the whole table, or just have a look at the top 20 gene sets in a bar plot.
+
+We can see some glomerular-related gene sets such as glomerular_basement_membrane_development and glomerular_epithelial_cell_differentiation are significantly enriched in up-regulated genes in abnormal glomerulus compared to tubule neg. We can also see some diabetic-related pathways enriched.
+
+
+```{r}
+fry_res_sig %>%
+  arrange(FDR) %>%
+  .[seq(20),] %>%
+  mutate(GenesetName = factor(GenesetName, levels = .$GenesetName)) %>%
+  ggplot(aes(GenesetName, -log(FDR), fill = Direction)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  coord_flip()
+```
+
+
+
 ## Visualization
 
-To interpret the GSEA output, we can use the `vissE` package to visualise the important enriched gene sets.
+An alternative way to summarise the GSEA output is to visualise common gene sets as a group.
+
+We can use the `igraph` and `vissE` package to perform clustering on the enriched gene sets and visualise the gene sets using word cloud-based algorithm and network-based visualisation. For more information about `vissE`, check out [here](https://bioconductor.org/packages/release/bioc/html/vissE.html).
 
 ```{r}
 library(vissE)
@@ -999,17 +1092,18 @@ dovissE <- function(fry_out, de_table, topN = 6, title = "", specific_clusters =
 }
 ```
 
+A typical vissE plot is including a word-cloud plot, a network plot and a gene statistical plot. The word-cloud plot is showing the selected gene sets clusters (top 9 in this case, order by cluster size), with their most common key words; the network plot is visualise the gene sets as a network (nodes are gene sets and the edges are the commoness between the gene sets); gene statistic plots are showing the logFC of the genes in the corresponding clusters.
+
 
 ```{r fig.width=15, fig.height=7}
-dovissE(fry_res_sig, de_genes_toptable_DvCinGab, title = "DKD vs Normal in abnormal glomerulus" )
+dovissE(fry_res_sig, de_genes_toptable_DvCinGab, topN = 9, title = "Abnormal glomerulus vs. Tubule neg in DKD patients" )
 ```
-
-
 
 
 # Summary
 
-To write.
+The analysis of the GeoMX transcriptomics data requires several steps of quality control to ensure the data is of good quality for performing differential expression analysis with pipelines such as `edgeR`, `limma-voom` or `DEseq2`. The bioconductor package `standR` provides multiple functions for conducting QC and normalisation for the GeoMX DSP datasets.
+
 
 # Packages used {.unnumbered}
 
@@ -1021,6 +1115,6 @@ sessionInfo()
 
 # Acknowledgments {.unnumbered}
 
-To write.
+We would like to thank Ahmed Mohamed and Dharmesh Bhuva for their efforts on the Bioconductor submission of the standR package.
 
 # References {.unnumbered}
