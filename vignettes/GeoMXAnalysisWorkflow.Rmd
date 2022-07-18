@@ -1092,7 +1092,7 @@ dovissE <- function(fry_out, de_table, topN = 6, title = "", specific_clusters =
 }
 ```
 
-A typical vissE plot is including a word-cloud plot, a network plot and a gene statistical plot. The word-cloud plot is showing the selected gene sets clusters (top 9 in this case, order by cluster size), with their most common key words; the network plot is visualise the gene sets as a network (nodes are gene sets and the edges are the commoness between the gene sets); gene statistic plots are showing the logFC of the genes in the corresponding clusters.
+A typical vissE analysis produces three plots: a word-cloud, a network and a gene statistic plot. The word-cloud plot performs a text-mining analysis to automatically annotate gene set clusters (top 9 in this case, ordered by cluster size and the -log10 of the FDR); the network plot visualises gene sets as a network where nodes are gene-sets and edges connect gene-sets that have genes in common; gene statistic plots visualise a gene-specific statistic (a log fold-change in this case) for all genes that belong to gene-sets in the cluster against the number of gene-sets that gene belongs to. Combined, these three plots enable us to identify higher-order biological processes, characterise these processes (word-clouds), assess the relationships between higher-order processes (network plot), and relate the experiment-specific statistics back to the identified processes (gene statistic plot), thereby providing an integrated view of the data.
 
 
 ```{r fig.width=15, fig.height=7}
