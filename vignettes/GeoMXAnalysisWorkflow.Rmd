@@ -98,11 +98,11 @@ There are three major advantages of using the `standR` package to analyse the Ge
 In this workshop, we will firstly use `standR` to process and analyse a published GeoMX WTA dataset using the recommended workflow. This will demonstrate our recommended workflow for processing and analysing GeoMX transcriptomics datasets. Secondly, we will perform  DE analysis of the processed data using the `limma-voom` pipeline, followed by a gene-set enrichment analysis using `fry` and subsequent visualisation of the higher order results using the R package `vissE`.
 
 
-# Using standR for process and analyseg GeoMX transcriptomics data
+# Using standR to process and analyse GeoMX transcriptomics data
 
 ## Load data
 
-The data we are using in this workshop is a published GeoMX whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that was made available by Nanostring (url XXX, see if we can include a image of the typical dataset).
+The data we are using in this workshop is a published GeoMX whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that was made available by Nanostring (http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/).
 
 This dataset includes data on **seven slides**, which includes **4 DKD and 3 healthy** slides. The ROI selection strategy employed is a regional based approach focused primarily on two distinct structures found in the kidney, namely: **tubules or glomeruli**.   
 
@@ -202,8 +202,8 @@ Gene metadata are stored in the `rowData` of the object.
 rowData(spe)[1:5,]
 ```
 
-The `readGeoMX` function has other parameters such as `hasNegProbe` and `NegProbeName` that are opt to deal with negative probes in the data. Then breifly talking about negprobes in both WTA and CTA.
-By default, the `readGeoMx` function will remove the negative probe, the one with name "NegProbe-WTX", in the count table and put it in the metadata of the object. User can turn this off by specifying `hasNegProbe = FALSE` in the function, just make sure no duplicate gene names in the "TargetName" column.
+The `readGeoMX` function has other parameters such as `hasNegProbe` and `NegProbeName` that are designed to deal with negative probes in the data. **Then breifly talking about negprobes in both WTA and CTA.**
+By default, the `readGeoMx` function will remove the negative probe, the entry with name "NegProbe-WTX", in the count table and put it in the metadata of the object. User can turn this off by specifying `hasNegProbe = FALSE` in the function, just make sure there are no duplicate gene names in the "TargetName" column.
 
 ```{r}
 metadata(spe)$NegProbes[,1:5]
@@ -344,9 +344,8 @@ plotGeneQC(spe, ordannots = "regions", col = regions, point_size = 2)
 ```
 
 
-### QC on ROIs
 
-## ROI level QC
+### ROI level QC
 
 After clecking the genes, we can now look at the ROI level data.
 Using the `plotROIQC` function, we can visualise QC statistics at the ROI level. 
@@ -768,9 +767,9 @@ dge <- SE2DGEList(spe_ruv)
 ```
 
 
-In our analysis, it is of interest to see which genes are differential expressed in different tissue regions within different status of the samples, a design matrix is therefore set up with both the disease status (DKD and normal) and tissue regions (glomerulus_healthy, glomerulus_abnormal, tubule_PanCK and tubule_neg) information. We also add the W matrices resulted from the `RUV4` to the model matrix as covariates to use batch corrected data.
+In our analysis, it is of interest to see which genes are differential expressed in different tissue regions within different status of the samples, a design matrix is therefore set up with both the disease status (DKD and normal) and tissue regions (glomerulus_healthy, glomerulus_abnormal, tubule_PanCK and tubule_neg) information. We added the W matrices resulted from the `RUV4` to the model matrix as covariates to use batch corrected data.
 
-We created the `biology` factor previously, which is a interacting factor between disease status and tissue regions, we therefore will use this directly. 
+Recall we have created the factor `biology` earlier in the workshop. This factor is an interacting factor of interest between disease status and tissue regions. As such, we directly use this factor in the design matrix. 
 
 
 ```{r}
@@ -797,8 +796,7 @@ contr.matrix <- makeContrasts(
    levels = colnames(design))
 ```
 
-It is recommended to filter out genes with low coverage in the dataset to allow a more accurate mean-variance relationship and reduce the number of statistical tests. Here we use the `filterByExpr` function from the `edgeR` package to filter genes based on the model matrix, while keeping as many genes as possible with worthwhile counts.
-
+It is recommended to filter out genes with low coverage in the dataset to allow a more accurate mean-variance relationship and reduce the number of statistical tests. Here we use the `filterByExpr` function from the `edgeR` package to filter genes based on the model matrix, keeping as many genes as possible with resonable counts.
 
 
 ```{r}
@@ -817,9 +815,9 @@ dge_all <- dge[keep, ]
 
 ## Differential expression
 
-In the `limma-voom` pipeline, linear modelling is carried out on the log-CPM values by using the `voom`, `lmFit`, `contrasts.fit` and `eBayes` function. If we want fold-change threshold we can also include the `treat` function to perform fold-change requirement to identify DE genes.
+In the `limma-voom` pipeline, linear modelling is carried out on the log-CPM values by using the `voom`, `lmFit`, `contrasts.fit` and `eBayes` functions. In specific cases where users like to take more considerations of the log fold changes in the statistical analysis, the `treat` function is applied. 
 
-**Notes: if we observe variation of patients (individuals) in the PCA plots previously after normalised/batch corrected. It is recommended to accoun for it by using the `duplicateCorrelation`, followed by passing the resulting correlation to the `lmFit` function.**
+**Notes: If there are samples are from a mixture of patients where subsets of which will have came from each patient (individual). The intra-and-inter patient correlations will need to be accounted for in the modelling. To do this, it is recommended to use the `duplicateCorrelation` function, followed by passing the resulting correlation to the `lmFit` function.**
 
 
 ```{r}
@@ -922,7 +920,7 @@ de_genes_toptable_DvCinGab %>%
 
 # GSEA and visualisation with vissE
 
-If you're interested in whether some specific genes are DE in the contrast, you can extract them from the DE tables. However, if there isn't a specific list of genes, it is common to perform a gene sets enrichment analysis (GSEA) to find out the enriched gene sets, which might indicate relevant or interest biological patterns.
+For users who are interested in whether some specific genes are DE in the contrast, you can extract them from the DE tables. However, if there isn't a specific list of genes, users can proceed to perform a gene sets enrichment analysis (GSEA) to find out the enriched gene sets, which might indicate relevant or interest biological patterns.
 
 There are many ways to perform GSEA, here we try to do GSEA with the DE genes using `fry` from the `limma` package.
 
@@ -960,7 +958,7 @@ gsc <- c(subsetCollection(msigdb_hs, c('h')),
 
 ## Enrichment analysis
 
-Here are some pre-processing steps of the gene sets, basically we filter out gene sets with less than 5 genes, and creating indices vectors list for easy formatting after running fry.
+Preprocessing is conducted on these genesets, filtering out genesets with less than 5 genes and creating indices vector list for formatting on the results after applying `fry`.
 
 ```{r}
 fry_indices <- ids2indices(lapply(gsc, geneIds), rownames(v), remove.empty = FALSE)
@@ -1003,9 +1001,9 @@ fry_res_sig <- post_fry_format(fry_res_out, gsc_category, gsc_subcategory) %>%
 ```
 
 
-The output is a `data.frame` object. So we can either output the whole table, or just have a look at the top 20 gene sets in a bar plot.
+The output is a `data.frame` object. We can either output the whole table, or inspect the top 20 gene sets in a bar plot.
 
-We can see some glomerular-related gene sets such as glomerular_basement_membrane_development and glomerular_epithelial_cell_differentiation are significantly enriched in up-regulated genes in abnormal glomerulus compared to tubule neg. We can also see some diabetic-related pathways enriched.
+We can see glomerular-related gene sets such as *glomerular_basement_membrane_development* and *glomerular_epithelial_cell_differentiation* are significantly enriched in up-regulated genes in abnormal glomerulus compared to tubule neg. Diabetic-related pathways are also found to be enriched.
 
 
 ```{r}
@@ -1092,7 +1090,15 @@ dovissE <- function(fry_out, de_table, topN = 6, title = "", specific_clusters =
 }
 ```
 
-A typical vissE analysis produces three plots: a word-cloud, a network and a gene statistic plot. The word-cloud plot performs a text-mining analysis to automatically annotate gene set clusters (top 9 in this case, ordered by cluster size and the -log10 of the FDR); the network plot visualises gene sets as a network where nodes are gene-sets and edges connect gene-sets that have genes in common; gene statistic plots visualise a gene-specific statistic (a log fold-change in this case) for all genes that belong to gene-sets in the cluster against the number of gene-sets that gene belongs to. Combined, these three plots enable us to identify higher-order biological processes, characterise these processes (word-clouds), assess the relationships between higher-order processes (network plot), and relate the experiment-specific statistics back to the identified processes (gene statistic plot), thereby providing an integrated view of the data.
+A typical vissE analysis produces three plots: 
+
+1. a word-cloud, a network and a gene statistic plot. The word-cloud plot performs a text-mining analysis to automatically annotate gene set clusters (top 9 in this case, ordered by cluster size and the -log10 of the FDR); 
+
+2. the network plot visualises gene sets as a network where nodes are gene-sets and edges connect gene-sets that have genes in common; 
+
+3. gene statistic plots visualise a gene-specific statistic (a log fold-change in this case) for all genes that belong to gene-sets in the cluster against the number of gene-sets that gene belongs to. 
+
+Combined, these three plots enable users to identify higher-order biological processes, characterise these processes (word-clouds), assess the relationships between higher-order processes (network plot), and relate the experiment-specific statistics back to the identified processes (gene statistic plot), thereby providing an integrated view of the data.
 
 
 ```{r fig.width=15, fig.height=7}
@@ -1102,7 +1108,7 @@ dovissE(fry_res_sig, de_genes_toptable_DvCinGab, topN = 9, title = "Abnormal glo
 
 # Summary
 
-The analysis of the GeoMX transcriptomics data requires several steps of quality control to ensure the data is of good quality for performing differential expression analysis with pipelines such as `edgeR`, `limma-voom` or `DEseq2`. The bioconductor package `standR` provides multiple functions for conducting QC and normalisation for the GeoMX DSP datasets.
+The analysis of the GeoMX transcriptomics data requires several steps of quality control to ensure the data is of good quality for performing downstream analyses like differential expression analysis with pipelines such as `edgeR`, `limma-voom` or `DEseq2`. The bioconductor package `standR` provides multiple functions for conducting QC and normalisation for the GeoMX DSP datasets.
 
 
 # Packages used {.unnumbered}
