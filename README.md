@@ -1,7 +1,5 @@
 # Analysing GeoMX DSP dataset with standR
 
-![flowchart](man/figures/workflow.jpg)
-
 ## Overview
 
 This workshop will focus on performing analysis of spatial transcriptomics data from the Nanostring GeoMX DSP platform. We will perform data QC, normalisation and batch correction using methods in the `standR` package to analyse a publicly available GeoMX WTA dataset. Following this, we will perform differential expression analysis using tools from the `limma` and `edgeR` packages. Finally, we will carry out a gene set enrichment analysis (GSEA) using `fry` from the `limma` package and visualise and interpret the GSEA results using the `vissE` package.
