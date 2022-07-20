@@ -1,6 +1,6 @@
 # Analysing GeoMX DSP dataset with standR
 
-![flowchart](figures/workflow.jpg)
+![flowchart](man/figures/workflow.jpg)
 
 ## Overview
 

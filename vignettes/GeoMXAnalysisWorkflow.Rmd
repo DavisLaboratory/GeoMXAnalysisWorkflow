@@ -79,7 +79,7 @@ Count data are generated from the DSP pipeline and technical pre-processed using
 
 **Note: Q3-normalised data is not recommended for any bioinformatics workflow or pipeline. Rather, the technical probe corrected counts (probeQC, which accounts for any technical machine systematic errors during the DSP run) is recommended.**
 
-![flowchart](../figures/workflow.jpg)
+![flowchart](../man/figures/workflow.jpg)
 
 
 ## Analysis of spatial GeoMX datasets
