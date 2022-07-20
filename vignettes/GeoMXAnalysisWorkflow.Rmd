@@ -606,7 +606,7 @@ In this case, we create a combined factor of interest *biology* (concatenate *di
 the function.  
 
 
-```{r fig.width=10, fig.height=9}
+```{r fig.width=11, fig.height=9}
 colData(spe)$biology <- paste0(colData(spe)$disease_status, "_", colData(spe)$regions)
 
 

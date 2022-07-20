@@ -73,6 +73,8 @@ remotes::install_github("DavisLaboratory/GeoMXAnalysisWorkflow", build_vignettes
 # To view vignettes
 library(GeoMXAnalysisWorkflow)
 browseVignettes("GeoMXAnalysisWorkflow")
+
+# Or go to [here](https://davislaboratory.github.io/GeoMXAnalysisWorkflow/articles/GeoMXAnalysisWorkflow.html)
 ```
 
 
