@@ -626,7 +626,7 @@ From the resulting PCA, we can see that the disease status are reasonable
 separated within each region type.
 
 
-```{r fig.width=10, fig.height=9}
+```{r fig.width=13, fig.height=11}
 spe_ruv <- geomxBatchCorrection(spe, factors = "biology", 
                    NCGs = metadata(spe)$NCGs, k = 4)
 
@@ -673,7 +673,7 @@ effectiveness of the applied batch correction process.
 In this instance, using `limma::removeBatchEffect` approach seems to be over-corrected since we specifying the `batch` parameter as slide, however slide is confounded with the biology of interest.  
 
 
-```{r fig.width=10, fig.height=9}
+```{r fig.width=13, fig.height=11}
 plotPairPCA(spe_lrb, assay = 2, color = disease_status, shape = regions, title = "Limma removeBatch", n_dimension = 4)
 ```
 
@@ -711,7 +711,7 @@ We can see from the results that when it comes to stratifying based on biologica
 factors (disease status and tissue regions) or quantifying the amount of clustering 
 due to batch effects for this dataset, `RUV4` outperforms `limma` in most cases. 
 
-```{r fig.width=10}
+```{r fig.width=10 fig.height=7}
 spe_list <- list(spe, spe_ruv, spe_lrb)
 
 plotClusterEvalStats(spe_list = spe_list,
@@ -861,7 +861,7 @@ de_genes_toptable_DvCinGab <- topTable(efit, coef = 1, sort.by = "P", n = Inf, p
 
 We can then visualise the DE genes with MA plot.
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=9}
 de_results_DvCinGab %>% 
   mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
@@ -883,7 +883,7 @@ de_results_DvCinGab %>%
 
 Or Volcano plot.
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=12}
 de_results_DvCinGab %>% 
   mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
