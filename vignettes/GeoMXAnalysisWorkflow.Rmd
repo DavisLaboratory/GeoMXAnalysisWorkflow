@@ -339,7 +339,7 @@ experts to ascertain or determine if any of these genes are of biological/experi
 significance. This provides a potential warning to whether the experiments have worked 
 as per intended. 
 
-```{r}
+```{r fig.width=10}
 plotGeneQC(spe, ordannots = "regions", col = regions, point_size = 2)
 ```
 
@@ -405,7 +405,7 @@ the RLE for each ROI (the dot in the boxplot) to zero.
 By default, we plot the RLE of the raw count, where we expect to see majority of 
 the variation to be contributed by differences in library size.
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=5}
 plotRLExpr(spe)
 ```
 
@@ -421,13 +421,13 @@ observed technical variation(s).
 In this case, we stratify by *slideName* using different colors which clearly show 
 substantial variations between the slides as well as to a lesser extent within each slide. 
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=5}
 plotRLExpr(spe, ordannots = "SlideName", assay = 2, color = SlideName)
 ```
 
 We can also try out other factors (e.g. regions ) to see how they influence the expression. 
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=5}
 plotRLExpr(spe, ordannots = "regions", assay = 2, color = regions)
 ```
 
@@ -539,7 +539,7 @@ In this case, from the resulting RLE plot, most of the medians of RLE are close
 to zero, suggesting that most of the technical variation have been removed.
 
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=5}
 plotRLExpr(spe_tmm, assay = 2, color = SlideName) + ggtitle("TMM")
 ```
 
@@ -731,7 +731,7 @@ compared to that for the limma-corrected data. Therefore, for the downstream
 differential expression analysis, we would suggest using  RUV4 as the batch 
 correction method for this specific dataset.
 
-```{r fig.width=10}
+```{r fig.width=10, fig.height=5}
 plotRLExpr(spe_ruv, assay = 2, color = SlideName) + ggtitle("RUV4")
 plotRLExpr(spe_lrb, assay = 2, color = SlideName) + ggtitle("Limma removeBatch")
 ```
