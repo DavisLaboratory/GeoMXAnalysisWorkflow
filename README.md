@@ -64,7 +64,19 @@ The following key R packages will be used:
 This is necessary in order to reproduce the code shown in the workshop. 
 The workshop is designed for R `4.2` and Bioconductor `3.15` and can be installed via GitHub with the following command.
 
+Bioconductor can be installed by the following codes if you haven't installed:
+
 ```
+install.packages("BiocManager")
+
+BiocManager::install(version = "3.15")
+```
+
+
+
+```
+BiocManager::install('prettydoc')
+BiocManager::install('statmod')
 install.packages('remotes')
 
 # Install workshop package
@@ -73,8 +85,6 @@ remotes::install_github("DavisLaboratory/GeoMXAnalysisWorkflow", build_vignettes
 # To view vignettes
 library(GeoMXAnalysisWorkflow)
 browseVignettes("GeoMXAnalysisWorkflow")
-
-# Or go to [here](https://davislaboratory.github.io/GeoMXAnalysisWorkflow/articles/GeoMXAnalysisWorkflow.html)
 ```
 
 
