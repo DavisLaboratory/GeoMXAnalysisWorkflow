@@ -883,13 +883,13 @@ de_results_DvCinGab %>%
 
 Or Volcano plot.
 
-```{r fig.width=10, fig.height=12}
+```{r fig.width=10, fig.height=11}
 de_results_DvCinGab %>% 
   mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
   ggplot(aes(logFC, -log10(adj.P.Val), col = DE)) + 
   geom_point(shape = 1, size = 1) + 
-  geom_text_repel(data = de_genes_toptable_DvCinGab %>% 
+  geom_text(data = de_genes_toptable_DvCinGab %>% 
                     mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
                     rownames_to_column(), aes(label = rowname)) +
