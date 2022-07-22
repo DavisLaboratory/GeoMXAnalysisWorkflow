@@ -711,7 +711,7 @@ We can see from the results that when it comes to stratifying based on biologica
 factors (disease status and tissue regions) or quantifying the amount of clustering 
 due to batch effects for this dataset, `RUV4` outperforms `limma` in most cases. 
 
-```{r fig.width=10 fig.height=7}
+```{r fig.width=10, fig.height=7}
 spe_list <- list(spe, spe_ruv, spe_lrb)
 
 plotClusterEvalStats(spe_list = spe_list,
