@@ -339,7 +339,7 @@ experts to ascertain or determine if any of these genes are of biological/experi
 significance. This provides a potential warning to whether the experiments have worked 
 as per intended. 
 
-```{r fig.width=10 fig.height=7}
+```{r fig.width=10, fig.height=7}
 plotGeneQC(spe, ordannots = "regions", col = regions, point_size = 2)
 ```
 
