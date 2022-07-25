@@ -34,8 +34,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 keywords: DifferentialExpression, Normalization, QualityControl, Spatial, Transcriptomics
-abstract: >
-  Abstract
 ---
 
 <p>
@@ -71,15 +69,15 @@ knitr::write_bib(c(
 
 ## Nanostring GeoMX data
 
-Nanostring's GeoMx DSP data comes from the GeoMx DSP workflow which integrates standard pathology and molecular profiling to obtain robust and reproducible spatial multiomics data. DSP data typically comes from whole tissue sections, FFPE or fresh frozen samples. These can be imaged and stained for RNA or protein using which specific tissue compartments or cell types to be profiled based on the biology can be selected. These selected `regions` or `areas` of interests will have their count expression levels quantified using either the nCounter Analysis System or an Illumina Sequencer.
+Nanostring's GeoMx DSP data comes from the GeoMx DSP workflow which integrates standard pathology and molecular profiling to obtain robust and reproducible spatial multiomics data. DSP data typically comes from whole tissue sections, FFPE or fresh frozen samples. These can be imaged and stained for RNA or protein. The selected `regions` or `areas` of interests will have their count expression levels quantified using either the nCounter Analysis System or an Illumina Sequencer.
 
-GeoMx RNA assays allows quantitative and spatial measurements of transcripts (up to the whole transcriptome) from single sections of FFPE or fixed fresh frozen tissues. Typical gene panels utilised include the Cancer transcriptome Atlas (CTA, \~1800 genes) and Whole Transcriptome Atlas (WTA, \~18000 genes). 
+GeoMx RNA assays allows quantitative and spatial measurements of transcripts (up to the whole transcriptome) from single sections of FFPE or fixed fresh frozen tissues. Typical gene panels utilised include the Cancer Transcriptome Atlas (CTA, \~1800 genes) and Whole Transcriptome Atlas (WTA, \~18000 genes). 
 
-Count data are generated from the DSP pipeline and technical pre-processed using the GeoMx Data Analysis Suite (DSPDA). This includes the removal of low performing probes and calculation of a typical QC metrics called LOQ using the negative probes. Data normalization are typically conducted based on recommendations from Nanostring by the technologist/technicians with a suggested Q3 normalized data output. 
+Count data are generated from the DSP pipeline and technically pre-processed using the GeoMx Data Analysis Suite (DSPDA). This includes the removal of low performing probes and calculation of a typical QC metric called LOQ using the negative probes. Data normalization is typically conducted based on recommendations from Nanostring by the technologist/technicians with a suggested Q3 normalized data output. 
 
 **Note: Q3-normalized data is not recommended for any bioinformatics workflow or pipeline. Rather, the technical probe corrected counts (probeQC, which accounts for any technical machine systematic errors during the DSP run) is recommended.**
 
-![flowchart](workflow.jpg)
+![](workflow.jpg)
 
 
 ## Analysis of spatial GeoMX datasets
@@ -89,11 +87,11 @@ We therefore developed a bioconductor package called `standR` (**S**patial **t**
 
 There are three major advantages of using the `standR` package to analyse the GeoMX DSP datasets:
 
-1. The package uses the `SpatialExperiment` infrastructure to analyse the data, this infrastructure is a lineage of the `SummarisedExperiment` family, which is highly recommended in the bioconductor community. It is compatible and transferable with many other well developed packages in the RNA-seq analysis world, such as `scater`, `scran`, `edgeR` and `limma`.
+1. The package uses the `SpatialExperiment` infrastructure to analyse the data. This infrastructure is a lineage of the `SummarisedExperiment` family, which is highly recommended in the bioconductor community. It is compatible and transferable with many other well developed packages in the RNA-seq analysis world, such as `scater`, `scran`, `edgeR` and `limma`.
 
 2. The package features a comprehensive route for quality control, and provides various visualisation functions to help in the assessment of the various quality control metrics.
 
-3. Batch effect is a common feature in transcriptomic dataset, especially in GeoMX DSP data due to the way the slides are typically utilised due to experimental constrains/designs. The package currently provides three batch correction methods that will remove the unwanted batch effect and provides statistics for assessing the correction process and outcomes.
+3. Batch effect is a common feature in transcriptomic datasets, especially in GeoMX DSP data due to the way the slides are typically utilised due to experimental constrains/designs. The package currently provides three batch correction methods that will remove the unwanted batch effect and provides statistics for assessing the correction process and outcomes.
 
 In this workshop, we will firstly use `standR` to process and analyse a published GeoMX WTA dataset using the recommended workflow. This will demonstrate our recommended workflow for processing and analysing GeoMX transcriptomics datasets. Secondly, we will perform  DE analysis of the processed data using the `limma-voom` pipeline, followed by a gene-set enrichment analysis using `fry` and subsequent visualisation of the higher order results using the R package `vissE`.
 
@@ -155,9 +153,9 @@ As  described in the introduction, there are many advantages to use a mature inf
 
 Therefore, the first step in the `standR` package workflow is to construct a `SpatialExperiment` object that includes all the information available in the data. Here we can use the function `readGeoMX` to do so. For more information about the `SpatialExperiment` infrastructure, see [here](http://www.bioconductor.org/packages/release/bioc/html/SpatialExperiment.html).
 
-**Note 1: by default, the `readGeoMx` function will look for the gene name column in both the `countFile` and `featureAnnoFile` with the column name of "TargetName", and the sample name column in the `sampleAnnoFile` with the column name of "SegmentDisplayName", these column names are given by the Nanostring in the default settings, if your data have been modified, you can indicate the corresponding column names by specifying the parameter "colnames.as.rownames" in the `readGeoMx` function when loading the data.**
+**Note 1: By default, the `readGeoMx` function will look for the gene name column in both the `countFile` and `featureAnnoFile` with the column name of "TargetName", and the sample name column in the `sampleAnnoFile` with the column name of "SegmentDisplayName", these column names are given by the Nanostring in the default settings, if your data have been modified, you can indicate the corresponding column names by specifying the parameter "colnames.as.rownames" in the `readGeoMx` function when loading the data.**
 
-**Note 2: if you plan to use `readGeoMx` to construct the `SpatialExperiment` object with your own data, make sure that the files you use as inputs are tab-delimited files.**
+**Note 2: If you plan to use `readGeoMx` to construct the `SpatialExperiment` object with your own data, make sure that the files you use as inputs are tab-delimited files.**
 
 ```{r message=FALSE}
 library(standR)
@@ -176,6 +174,8 @@ Both count-level data and logCPM measurements are stored in the `spatialExperime
 
 
 ```{r}
+library(SpatialExperiment)
+
 assayNames(spe)
 ```
 
@@ -232,46 +232,32 @@ spe2
 
 The recommended quality control (QC) checks for the GeoMX transcriptome data consist of three major steps:
 
-1. **Inspection of the sample metadata**: sample metadata can be view in
-tabular-like format using the `colData` function, however here we aim to 
-visualise the relations across the various sample information, such as which slide 
-did the ROIs came from, which are the control groups and treatment groups, what 
-are the pre-defined tissue types etc. By doing this, we will have an overview of how   
-the experiment was designed, the potential questions of interest, are they clear 
-batch effects to look out for, and the comparisons of interest that can be established. 
+1. **Inspection of the sample metadata**: Sample metadata can be view in\ tabular-like format using the `colData` function, however here we aim to visualise the relations across the various sample information, such as which slide did the ROIs came from, which are the control groups and treatment groups, what are the pre-defined tissue types etc. By doing this, we will have an overview of how the experiment was designed, the potential questions of interest, are there clear batch effects to look out for, and the comparisons of interest that can be established. 
 
-2. **Gene level QC**: At the gene level, by default we aim at removing genes that 
-are not expressed in more than 90% of the ROIs, and identifying any ROIs with 
-very few genes being expressed.  
-This is similar to the process used in `edgeR::filterByExpr`, as genes with consistently 
-low counts are unlikely be identified as significant genes. By keeping only the genes with 
-sufficiently large counts in the analysis, we can increase the statistical power while 
-reducing multiple testing burden.
+2. **Gene level QC**: At the gene level, by default we aim at removing genes that are not expressed in more than 90% of the ROIs, and identifying any ROIs with very few genes being expressed. This is similar to the process used in `edgeR::filterByExpr`, as genes with consistently low counts are unlikely to be identified as significant genes. By keeping only the genes with sufficiently large counts in the analysis, we can increase the statistical power while reducing multiple testing burden.
 
-3. **ROI level QC**: At the ROI level, we aim to identify the low-quality ROIs that have 
-small library size (i.e. total feature count) and low cell count. these low-quality ROIs, 
-if not removed would show up as isolated clusters in the dimension reduction plots (PCA/UMAPs)
-and thereby affect the comparisons conducted during DE analyses. 
+3. **ROI level QC**: At the ROI level, we aim to identify the low-quality ROIs that have small library size (i.e. total feature count) and low cell count. These low-quality ROIs, if not removed would show up as isolated clusters in the dimension reduction plots (PCA/UMAPs) and thereby affect the comparisons conducted during DE analyses. 
 
 
 ### Sample level QC
 
 To visualise sample metadata, we can use the `plotSampleInfo` function. 
-In this dataset, the following key features are of interest for which we would like to look at:
-slides ("SlideName"), diseases status ("disease_status"), tissue regions ("region"), and the  
-different cancer subtypes ("pathology"). These can be queries by listing them in the function. 
+In this dataset, the following key features are of interest for which we would like to look at: slides ("SlideName"), diseases status ("disease_status"), tissue regions ("region"), and the   different cancer subtypes ("pathology"). These can be queries by listing them in the function. 
 
 ```{r}
+library(ggplot2)
+library(ggalluvial)
+
 plotSampleInfo(spe, column2plot = c("SlideName","disease_status","region","SegmentLabel","pathology"))
 ```
 
 
-Based on the known sample information, we know that all the *glomerulus* ROIs are classified 
-as either abnormal or healthy, and *tubule* are classified as PanCK negative("neg") or positive ("PanCK"). 
+Based on the known sample information, we know that all the *glomerulus* ROIs are classified as either abnormal or healthy, and *tubule* are classified as PanCK negative("neg") or positive ("PanCK"). 
 
-We therefore merge the region and segment/pathology related annotations to avoid collinearity, which 
-can cause problems when dealing with batch correction. Specifically:  
-For *glomerulus*, "region" will concatenate with "pathology".    
+We therefore merge the region and segment/pathology related annotations to avoid collinearity, which can cause problems when dealing with batch correction. Specifically:  
+
+For *glomerulus*, "region" will concatenate with "pathology".
+
 For *tubule*, "region" will concatenate with "segmentLabel". 
 
 
@@ -298,13 +284,7 @@ plotSampleInfo(spe, column2plot = c("SlideName","disease_status","regions"))
 
 ### Gene level QC
 
-Now we check on the gene level data. Using the `addPerROIQC` function, we can add  
-key statistics to the `colData` of the object. For the purpose of this exercise,  
-we will set the argument `rm_genes` to TRUE, and keeping the default settings of  
-`min_count = 5` and `sample_fraction = 0.9`. We first calculate the expression  
-threshold using the logCPM data (to account for library size variations), we then  
-filter out the genes with low-expression values that's below the set threshold in  
-more than 90% of the ROIs. 
+Now we check on the gene level data. Using the `addPerROIQC` function, we can add key statistics to the `colData` of the object. For the purpose of this exercise, we will set the argument `rm_genes` to TRUE, and keeping the default settings of `min_count = 5` and `sample_fraction = 0.9`. We first calculate the expression threshold using the logCPM data (to account for library size variations), we then filter out the genes with low-expression values that's below the set threshold in more than 90% of the ROIs. 
 
 ```{r}
 spe <- addPerROIQC(spe, rm_genes = TRUE)
@@ -312,9 +292,7 @@ spe <- addPerROIQC(spe, rm_genes = TRUE)
 
 Looking at the object again, we can see that 121 genes were removed.
 
-The count matrix of the genes that were removed will be stored in the `metadata`  
-of the object with prefix *genes_rm*, alongside the calculated expression  
-threshold (*lcpm_threshold*).
+The count matrix of the genes that were removed will be stored in the `metadata` of the object with prefix *genes_rm*, alongside the calculated expression threshold (*lcpm_threshold*).
 
 ```{r}
 dim(spe)
@@ -323,21 +301,9 @@ metadata(spe) |> names()
 ```
 
 
-Using the `plotGeneQC` function, we can then assess the logCPM expressions of the  
-genes that were removed across the samples. The function also plots the histogram  
-/distribution of the proportion of non-expressed genes in all the ROIs (as a  
-percentage). By default, the top 9 genes are plotted here (ordered by the mean 
-expression). Users can customise the number of genes plotted using the parameter 
-`top_n`.
+Using the `plotGeneQC` function, we can then assess the logCPM expressions of the genes that were removed across the samples. The function also plots the histogram distribution of the proportion of non-expressed genes in all the ROIs (as a percentage). By default, the top 9 genes are plotted here (ordered by the mean expression). Users can customise the number of genes plotted using the parameter `top_n`.
 
-Moreover, users can order the samples (using parameter `ordannots`) or color/shape  
-the dots by specific annotation to better compare and assess for specific biological 
-or experimental factors which are influencing how these genes were expressed across 
-the samples (e.g. gene may be higly expression in particular tissue types or under 
-particular treatment conditions. This genes are to be access or curated by domain 
-experts to ascertain or determine if any of these genes are of biological/experimental 
-significance. This provides a potential warning to whether the experiments have worked 
-as per intended. 
+Moreover, users can order the samples (using parameter `ordannots`) or color/shape the dots by specific annotation to better compare and assess for specific biological or experimental factors which are influencing how these genes were expressed across the samples (e.g. gene may be highly expressed in particular tissue types or under particular treatment conditions. These genes are to be access or curated by domain experts to ascertain or determine if any of these genes are of biological/experimental significance. This provides a potential warning to whether the experiments have worked as per intended. 
 
 ```{r fig.width=10, fig.height=7}
 plotGeneQC(spe, ordannots = "regions", col = regions, point_size = 2)
@@ -347,38 +313,21 @@ plotGeneQC(spe, ordannots = "regions", col = regions, point_size = 2)
 
 ### ROI level QC
 
-After clecking the genes, we can now look at the ROI level data.
+After checking the genes, we can now look at the ROI level data.
 Using the `plotROIQC` function, we can visualise QC statistics at the ROI level. 
 By default, the library size and cell count (AOINucleiCount) will be computed.
 
-In the ROI level QC, we first aim to identify (if any) ROI(s) that have 
-relatively low library size and low cell count because they are considered as 
-low quality samples due to insufficient sequencing depth or the lack of RNA in 
-the selected region. Frequency histograms are also provided for both library size
-and nuclei count to assist with assessing any abnormal distributions of samples
-in the data.
+In the ROI level QC, we first aim to identify (if any) ROI(s) that have relatively low library size and low cell count because they are considered as low quality samples due to insufficient sequencing depth or the lack of RNA in the selected region. Frequency histograms are also provided for both library size and nuclei count to assist with assessing any abnormal distributions of samples in the data.
 
-In this case, we assess the distribution plot for library size against the nuclei 
-count. Looking at the scatter plot, we expect the library sizes to be mostly 
-positively correlated with the cell count (i.e. nuclei count). It is not unexpected 
-for there to be some ROIs having relatively low library size and having a reasonable 
-number of cells (nuclei count). In this dataset, we see this library size vs cell 
-count relationship is relatively smooth with no aberrations observed (e.g. spikes at 
-the lower ranges)
+In this case, we assess the distribution plot for library size against the nuclei count. Looking at the scatter plot, we expect the library sizes to be mostly positively correlated with the cell count (i.e. nuclei count). It is not unexpected for there to be some ROIs having relatively low library size and having a reasonable number of cells (nuclei count). In this dataset, we see this library size vs cell count relationship is relatively smooth with no aberrations observed (e.g. spikes at the lower ranges)
 
-To remove/filter low quality samples, we define a filtering threshold near the lower 
-end of the library size range, in this case at 50,000. By stratifying (color) the 
-points based on their slide names, we not that the ROIs below the threshold are all 
-from slide *disease1B* (pale orange). This might suggest potential of some technical 
-errors associated with slide *disease1B*.
+To remove/filter low quality samples, we define a filtering threshold near the lower end of the library size range, in this case at 50,000. By stratifying (color) the points based on their slide names, we notice that the ROIs below the threshold are all from slide *disease1B* (pale orange). This might suggest potential of some technical errors associated with slide *disease1B*.
 
 ```{r}
 plotROIQC(spe, y_threshold = 50000, color = SlideName)
 ```
 
-In this experiment, based on the above plot, the library size threshold of 50,000 
-looks to be a reasonable cutoff. As such we subset the spatial experiment object based  
-on the library size using this threshold in `colData`.
+In this experiment, based on the above plot, the library size threshold of 50,000 looks to be a reasonable cutoff. As such we subset the spatial experiment object based on the library size using this threshold in `colData`.
 
 ```{r}
 qc <- colData(spe)$lib_size > 50000
@@ -387,7 +336,7 @@ spe <- spe[, qc]
 
 **Note: The same workflow and logic can also be applied to the nuclei count. We will also check the gene detection rate to assess the quality of the dataset.**
 
-The function `plotROIQC` is looking at nuclei count and library size of each ROI by default, user can change the x or y axis to any other statics they want to QC by specifying the parameter `x_axis` or `y_axis`. For example, the statistics limit of quantification (LOQ) is summarised by the Nanostring process pipeline and it's provided in most/all of the GeoMX DSP dataset. This metrics is calculated by on the distribution of the negative probes, and it's suggested by Nanostring that LOQ can be useful when there are large segments (i.e. big ROI or high cell count samples), and a minimum LOQ of 2 is recommended.
+The function `plotROIQC` is looking at nuclei count and library size of each ROI by default. User can change the x or y axis to any other statics they want to QC by specifying the parameter `x_axis` or `y_axis`. For example, the statistics limit of quantification (LOQ) is summarised by the Nanostring process pipeline and it's provided in most/all of the GeoMX DSP dataset. This metrics is calculated based on the distribution of the negative probes, and it's suggested by Nanostring that LOQ can be useful when there are large segments (i.e. big ROI or high cell count samples), and a minimum LOQ of 2 is recommended.
 
 ```{r}
 plotROIQC(spe,  y_axis = "LOQ", y_lab = "LOQ", x_axis = "lib_size", x_lab = "Library size",  y_threshold = 2, col = SlideName)
@@ -397,29 +346,19 @@ plotROIQC(spe,  y_axis = "LOQ", y_lab = "LOQ", x_axis = "lib_size", x_lab = "Lib
 
 ### Relative log expression distribution
 
-After filtering, we will use function `plotRLExpr` to visualise the relative log 
-expression (RLE) of the data to identify any technical variation that may be 
-present in the dataset. We looks at the relative distance between the median of 
-the RLE for each ROI (the dot in the boxplot) to zero. 
+After filtering, we will use function `plotRLExpr` to visualise the relative log expression (RLE) of the data to identify any technical variation that may be present in the dataset. We look at the relative distance between the median of the RLE for each ROI (the dot in the boxplot) to zero. 
 
-By default, we plot the RLE of the raw count, where we expect to see majority of 
-the variation to be contributed by differences in library size.
+By default, we plot the RLE of the raw count, where we expect to see majority of the variation to be contributed by differences in library size.
 
 ```{r fig.width=10, fig.height=5}
 plotRLExpr(spe)
 ```
 
-By using `assay = 2` to run RLE on the logCPM data, we can see that most of the 
-technical variations due to library size differences are removed.  
+By using `assay = 2` to run RLE on the logCPM data, we can see that most of the technical variations due to library size differences are removed.  
 
-We can follow up by sorting the data based on the different sample metadata annotations 
-by specifying the `ordannots` parameter. This can be visualised either with color or 
-shape mapping parameters (based on similar approaches for plotting in `ggplot`), 
-enabling quick assessment of the possible factors that's contributing to the 
-observed technical variation(s).
+We can follow up by sorting the data based on the different sample metadata annotations by specifying the `ordannots` parameter. This can be visualised either with color or shape mapping parameters (based on similar approaches for plotting in `ggplot`), enabling quick assessment of the possible factors that's contributing to the observed technical variation(s).
 
-In this case, we stratify by *slideName* using different colors which clearly show 
-substantial variations between the slides as well as to a lesser extent within each slide. 
+In this case, we stratify by *slideName* using different colors which clearly show substantial variations between the slides as well as to a lesser extent within each slide. 
 
 ```{r fig.width=10, fig.height=5}
 plotRLExpr(spe, ordannots = "SlideName", assay = 2, color = SlideName)
@@ -439,47 +378,54 @@ plotRLExpr(spe, ordannots = "regions", assay = 2, color = regions)
 
 We can also look at the data by breaking it down into the lower dimensions. 
 
-Using the `drawPCA` function, we can perform principal component analysis (PCA) 
-on the data. The PCA can help visualise any potential systemic variations 
-(both biological and technical) in the data and to identify the main factors 
-contributing to the variations.
+Using the `drawPCA` function, we can perform principal component analysis (PCA) on the data. The PCA can help visualise any potential systemic variations (both biological and technical) in the data and to identify the main factors contributing to the variations.
 
-Here we stratify the points based on slide information (*SlideName* by color) 
-and tissues regions (*regions* using shapes). It is clear that tissue regions
-/types can be explained on PC1, particularly between *glomerulus* and 
-*tubule*. ROIs group and clusters by the individual slide within each tissue 
-structure. Note that the subtypes in the *tubule* ROIs are are clearly separated 
-along PC2. This is not the case for the different subtypes of glomerulus 
-(which groups together). 
+Here we stratify the points based on slide information (*SlideName* by color) and tissues regions (*regions* using shapes). It is clear that tissue regions/types can be explained on PC1, particularly between *glomerulus* and *tubule*. ROIs group and clusters by the individual slide within each tissue structure. Note that the subtypes in the *tubule* ROIs are are clearly separated along PC2. This is not the case for the different subtypes of glomerulus (which groups together). 
 
 
 ```{r fig.height=8, fig.width=10}
 drawPCA(spe, assay = 2, col = SlideName, shape = regions)
 ```
 
-Diseased tissues and control tissues are mixed 
-(disease slides and normal slides).
 
+Since the `drawPCA` function would calculate PCA every time, the outputed PCA plot might be different (flipped x or y axis). To make the result consistent, we can pre-compute the PCA using `scater::runPCA`, then infer the PCA results by using the parameter `precomputed` in the `drawPCA` function.
 
-```{r fig.height=8, fig.width=10}
-drawPCA(spe, assay = 2, col = disease_status, shape = regions)
+```{r}
+set.seed(100)
+
+spe <- scater::runPCA(spe)
+
+pca_results <- reducedDim(spe, "PCA")
 ```
 
 
-The `standR` package also provide other functions to visualise the PCA, 
-including the PCA scree plot, pair-dimension PCA plot and PCA bi-plot.
+```{r fig.height=8, fig.width=10}
+drawPCA(spe, precomputed = pca_results, col = SlideName, shape = regions)
+```
+
+
+
+Diseased tissues and control tissues are mixed (disease slides and normal slides).
+
+
+```{r fig.height=8, fig.width=10}
+drawPCA(spe, precomputed = pca_results, col = disease_status, shape = regions)
+```
+
+
+The `standR` package also provide other functions to visualise the PCA, including the PCA scree plot, pair-dimension PCA plot and PCA bi-plot.
 
 ```{r}
-plotScreePCA(spe, assay = 2, dims = 10)
+plotScreePCA(spe, precomputed = pca_results)
 ```
 
 ```{r fig.height=12, fig.width=15}
 plotPairPCA(spe, col = disease_status, 
-            shape = regions, assay = 2, n_dimension = 4)
+            shape = regions, precomputed = pca_results, n_dimension = 4)
 ```
 
 ```{r fig.height=8, fig.width=10}
-plotPCAbiplot(spe, n_loadings = 10, assay = 2, col = regions)
+plotPCAbiplot(spe, n_loadings = 10, precomputed = pca_results, col = regions)
 ```
 
 
@@ -496,34 +442,24 @@ standR::plotMDS(spe, assay = 2, color = disease_status, shape = regions)
 
 #### UMAP
 
-Furthermore, since we're using `SpatialExperiment` as our infrastructure, we are 
-able to incorporate or apply other widely used packages such as `scater`, which 
-is commonly used in single cell data and spatial 10x genomics visium data analyses.
-We also provide the function `plotDR` to visualise any dimension reduction results 
-generated using `scater::run*`, such as UMAP, TSNE and NMF. This can be done by 
-simply specifying the `dimred` parameter. 
+Furthermore, since we're using `SpatialExperiment` as our infrastructure, we are able to incorporate or apply other widely used packages such as `scater`, which is commonly used in single cell data and spatial 10x genomics visium data analyses. We also provide the function `plotDR` to visualise any dimension reduction results generated using `scater::run*`, such as UMAP, TSNE and NMF. This can be done by simply specifying the `dimred` parameter. 
 
-Here we plot the UMAP of our data. Similar variations can be generated for other 
-approaches like PCA and MDS as discussed earlier.
+Here we plot the UMAP of our data. Similar variations can be generated for other approaches like PCA and MDS as discussed earlier.
 
 
 ```{r fig.height=8, fig.width=10}
-spe <- scater::runUMAP(spe)
+set.seed(100)
+
+spe <- scater::runUMAP(spe, dimred = "PCA")
 
 plotDR(spe, dimred = "UMAP", col = regions)
 ```
 
 ## Normalization
 
-If there are observed technical variations identified in the earlier QC steps, 
-before proceeding with any analysis of the data, it is necessary to appropriately
-perform normalization of the data to rectify/minimise the identified variation.
+If there are observed technical variations identified in the earlier QC steps, before proceeding with any analysis of the data, it is necessary to appropriately perform normalization of the data to rectify/minimise the identified variation.
 
-The `standR` package offers normalization options including TMM, RPKM, 
-TPM, CPM, upperquartile and sizefactor. Among these, RPKM and TPM require gene 
-length information (add `genelength` column to the `rowData` of the object). 
-For TMM, upperquartile and sizefactor, their normalized factor will be stored in 
-their `metadata`.
+The `standR` package offers normalization options including TMM, RPKM, TPM, CPM, upperquartile and sizefactor. Among these, RPKM and TPM require gene length information (add `genelength` column to the `rowData` of the object). For TMM, upperquartile and sizefactor, their normalized factor will be stored in their `metadata`.
 
 Here we used TMM to normalize the data.  
 
@@ -532,50 +468,41 @@ spe_tmm <- geomxNorm(spe, method = "TMM")
 ```
 
 
-To assess how well the normalization was able to remove unwanted variataions, 
-we make use of RLE and PCA plot in conjunction with the factors of interest.
+To assess how well the normalization was able to remove unwanted variataions, we make use of RLE and PCA plot in conjunction with the factors of interest.
 
-In this case, from the resulting RLE plot, most of the medians of RLE are close 
-to zero, suggesting that most of the technical variation have been removed.
+In this case, from the resulting RLE plot, most of the medians of RLE are close to zero, suggesting that most of the technical variations have been removed.
 
 
 ```{r fig.width=10, fig.height=5}
 plotRLExpr(spe_tmm, assay = 2, color = SlideName) + ggtitle("TMM")
 ```
 
-However, from the PCA plots, the batch effect due to the different slides 
-are still being observed, confounding the known biology of interest 
-(which is between disease and normal).
+However, from the PCA plots, the batch effect due to the different slides are still being observed, confounding the known biology of interest (which is between disease and normal).
 
 ```{r}
-plotPairPCA(spe_tmm, assay = 2, color = disease_status, shape = regions)
+set.seed(100)
+
+spe_tmm <- scater::runPCA(spe_tmm)
+
+pca_results_tmm <- reducedDim(spe_tmm, "PCA")
+
+plotPairPCA(spe_tmm, precomputed = pca_results_tmm, color = disease_status, shape = regions)
 ```
 
 
 ## Batch correction
 
-In the Nanostring's GeoMX DSP protocol, each slide is typically only able to  
-fit a handful of tissue segments (Tissue microarrays/FFPE cores), it is common  
-that DSP data are confounded by the batch effect introduced by the different  
-slides. In order to establish appropriate comparisons between the ROIs in the 
-downstream analyses, it is necessary to remove this batch effect from the data.
+In the Nanostring's GeoMX DSP protocol, each slide is typically only able to  fit a handful of tissue segments (Tissue microarrays/FFPE cores), it is common that DSP data are confounded by the batch effect introduced by the different slides. In order to establish appropriate comparisons between the ROIs in the downstream analyses, it is necessary to remove this batch effect from the data.
 
-In the `standR` package, we provide two approaches for removing batch effects 
-(RUV4 and Limma), more methods (e.g. RUVg) are included in the development version.
+In the `standR` package, we provide two approaches for removing batch effects (RUV4 and Limma), more methods (e.g. RUVg) are included in the development version.
 
 ### Correction method : Remove Unwanted Variation 4 (RUV4)
 
-Remove Unwanted Variation 4 (RUV4) is a method developed by Terry Speed and Johann Gagnon-Bartsch to use negative control genes to remove unwanted variations, 
-see the published paper [here](https://academic.oup.com/biostatistics/article/13/3/539/248166).
+Remove Unwanted Variation 4 (RUV4) is a method developed by Terry Speed and Johann Gagnon-Bartsch to use negative control genes to remove unwanted variations, see the published paper [here](https://academic.oup.com/biostatistics/article/13/3/539/248166).
 
-To run batch correction using RUV4, a list of "negative control genes (NCGs)"
-will be required.
+To run batch correction using RUV4, a list of "negative control genes (NCGs)" will be required.
 
-`standR` provides a function `findNCGs` which identify the NCGs from the data. 
-In this case, since the batch effect is mostly due to slide effects, we aim to 
-identify NCGs across all the slides. As such, the `batch_name` parameter was set
-to "SlideName", and the top 300 least variable genes (ranked by coefficient of variation) across different slides 
-were identified as NCGs. These are stored in the object as "NCGs".
+`standR` provides a function `findNCGs` which identify the NCGs from the data. In this case, since the batch effect is mostly due to slide effects, we aim to identify NCGs across all the slides. As such, the `batch_name` parameter was set to "SlideName", and the top 300 least variable genes (ranked by coefficient of variation) across different slides were identified as NCGs. These are stored in the object as "NCGs".
 
 
 ```{r}
@@ -584,26 +511,19 @@ spe <- findNCGs(spe, batch_name = "SlideName", top_n = 300)
 metadata(spe) |> names()
 ```
 
-Now we run RUV4 using the function `geomxBatchCorrection`. By default this function 
-will use `RUV4` to normalize the data.  
+Now we run RUV4 using the function `geomxBatchCorrection`. By default this function will use `RUV4` to normalize the data.  
 
 For RUV4 correction, the function requires 3 addition parameters other than the input object: 
 
   * `factors`: the factor of interest, i.e. the biological variation to keep; 
   * `NCGs`: the list of negative control genes detected using the function `findNCGs`; 
-  * `k`: the number of unwanted factors to use. Based on RUV's documentation, it is suggest 
-  that to use the smallest k possible where the observed technical variation is no longer observed.  
+  * `k`: the number of unwanted factors to use. Based on RUV's documentation, it is suggest to use the smallest k possible where the observed technical variation is no longer observed.  
   
-Choosing the optimal k is one of the most important task when performing batch correction using RUV.
-The best way to do so is to test out each k and assess the corresponding diagnostic plot (e.g. PCA).
-The optimal k would be the smallest value that produces a separation of the main biology of interest 
-of the experiment on a PCA plot.
+Choosing the optimal k is one of the most important task when performing batch correction using RUV. The best way to do so is to test out each k and assess the corresponding diagnostic plot (e.g. PCA). The optimal k would be the smallest value that produces a separation of the main biology of interest of the experiment on a PCA plot.
 
 So here we run through the paired PCA plots for k between 1 and 5. 
 
-In this case, we create a combined factor of interest *biology* (concatenate *disease_status* and 
-*regions* information) in the object. This factor will be specified in the `factors` parameter of 
-the function.  
+In this case, we create a combined factor of interest *biology* (concatenate *disease_status* and *regions* information) in the object. This factor will be specified in the `factors` parameter of the function.  
 
 
 ```{r fig.width=13, fig.height=11}
@@ -622,40 +542,40 @@ for(i in seq(5)){
 ```
 
 After assessing the generated PCA plots, we choose k = 4 to be our best k.
-From the resulting PCA, we can see that the disease status are reasonable  
-separated within each region type.
+From the resulting PCA, we can see that the disease status are reasonable separated within each region type.
 
 
 ```{r fig.width=13, fig.height=11}
 spe_ruv <- geomxBatchCorrection(spe, factors = "biology", 
                    NCGs = metadata(spe)$NCGs, k = 4)
 
+set.seed(100)
 
-plotPairPCA(spe_ruv, assay = 2, color = disease_status, shape = regions, title = "RUV4, k = 4", n_dimension = 4)
+spe_ruv <- scater::runPCA(spe_ruv)
+
+pca_results_ruv <- reducedDim(spe_ruv, "PCA")
+
+plotPairPCA(spe_ruv, precomputed = pca_results_ruv, color = disease_status, shape = regions, title = "RUV4, k = 4", n_dimension = 4)
 ```
 
 
 ```{r fig.width=10, fig.height=9}
-plotPairPCA(spe_ruv, assay = 2, color = SlideName, title = "RUV4, k = 4", n_dimension = 4)
+plotPairPCA(spe_ruv, precomputed = pca_results_ruv, color = SlideName, title = "RUV4, k = 4", n_dimension = 4)
 ```
 
 
 
 ### Correction method: limma
 
-The other available batch correction method is based on the `removeBatchEffect` 
-function from the bioconductor package `limma`, more details of the method can see paper [here](https://academic.oup.com/nar/article/43/7/e47/2414268).
+The other available batch correction method is based on the `removeBatchEffect` function from the bioconductor package `limma`, more details of the method can see paper [here](https://academic.oup.com/nar/article/43/7/e47/2414268).
 
-To use the limma batch correction, set the parameter `method` to "Limma", 
-which uses the remove batch correction method from `limma` package. In this mode, 
-the function requires 2 addition parameters other than the input object:  
+To use the limma batch correction, set the parameter `method` to "Limma", which uses the remove batch correction method from `limma` package. In this mode, the function requires 2 addition parameters other than the input object:  
 
-  * `batch`: a vector that indicating the batch information for all samples; 
+  * `batch`: a vector indicating the batch information for all samples; 
   * `design`: a design matrix generated from `model.matrix`, in the design matrix, 
   all biologically-relevant factors should be included.
 
-In this case, the batch effect is based on the slides (SlideName) and factors of 
-interest includes "disease_status" and "regions". 
+In this case, the batch effect is based on the slides (SlideName) and factors of interest includes "disease_status" and "regions". 
 
 
 ```{r}
@@ -667,8 +587,7 @@ spe_lrb <- geomxBatchCorrection(spe,
 ```
 
 
-Once again, we use the respective QC plots like PCA to inspect and assess the
-effectiveness of the applied batch correction process.
+Once again, we use the respective QC plots like PCA to inspect and assess the effectiveness of the applied batch correction process.
 
 In this instance, using `limma::removeBatchEffect` approach seems to be over-corrected since we specifying the `batch` parameter as slide, however slide is confounded with the biology of interest.  
 
@@ -684,32 +603,20 @@ plotPairPCA(spe_lrb, assay = 2, color = disease_status, shape = regions, title =
 
 #### Summary statistics
 
-The typical approach to interrogating the effectiveness of batch correction 
-process on the data uses dimension reduction plots like PCAs. Here we further 
-suggest the use of summarized statistics to assess the effectiveness of batch 
-correction. The 6 summarized statistics tested in this package includes:  
+The typical approach to interrogating the effectiveness of batch correction process on the data uses dimension reduction plots like PCAs. Here we further suggest the use of summarized statistics to assess the effectiveness of batch correction. The 6 summarized statistics tested in this package includes:  
 
-  * adjusted rand index.   
-  * jaccard similarity coefficient.  
-  * silhouette coefficient.  
+  * Adjusted rand index.   
+  * Jaccard similarity coefficient.  
+  * Silhouette coefficient.  
   * Chi-squared coefficient.
   * Mirkin distance.  
   * Simple matching coefficient.  
 
-This assessment can be conducted by using the `plotClusterEvalStats` function
-provided in `standR`. 
+This assessment can be conducted by using the `plotClusterEvalStats` function provided in `standR`. 
 
-Here we present the output for the summarised statistics for the two normalization 
-methods in this workshop (i.e. RUV4 and Limma ) as well as the uncorrected data. 
-Scores for each method will be presented as a barplot scores of the six summarized 
-statistics (as above) under two sections (*biology* and *batch*). As a general rule, 
-for the *biology* of interest defined in the batch correction process, a higher 
-score is considered a good outcome. On the other hand, for the batch, a smaller 
-score will be the preferred outcome.
+Here we present the output for the summarised statistics for the two normalization methods in this workshop (i.e. RUV4 and Limma ) as well as the uncorrected data. Scores for each method will be presented as a barplot scores of the six summarized statistics (as above) under two sections (*biology* and *batch*). As a general rule, for the *biology* of interest defined in the batch correction process, a higher score is considered a good outcome. On the other hand, for the batch, a smaller score will be the preferred outcome.
 
-We can see from the results that when it comes to stratifying based on biological 
-factors (disease status and tissue regions) or quantifying the amount of clustering 
-due to batch effects for this dataset, `RUV4` outperforms `limma` in most cases. 
+We can see from the results that when it comes to stratifying based on biological factors (disease status and tissue regions) or quantifying the amount of clustering due to batch effects for this dataset, `RUV4` outperforms `limma` in most cases. 
 
 ```{r fig.width=10, fig.height=7}
 spe_list <- list(spe, spe_ruv, spe_lrb)
@@ -722,14 +629,9 @@ plotClusterEvalStats(spe_list = spe_list,
 
 #### RLE plots
 
-In addition, we can visualize the outcomes using RLE plots of normalized count to 
-determine which batch correction performs better for this dataset.
+In addition, we can visualize the outcomes using RLE plots of normalized count to determine which batch correction performs better for this dataset.
 
-Plotting both the RLEs for RUV4-corrected and limma-corrected data, we can clearly 
-see that RUV4-corrected data has in general a more-closer-to-zero median RLE when 
-compared to that for the limma-corrected data. Therefore, for the downstream 
-differential expression analysis, we would suggest using  RUV4 as the batch 
-correction method for this specific dataset.
+Plotting both the RLEs for RUV4-corrected and limma-corrected data, we can clearly see that RUV4-corrected data has in general a more-closer-to-zero median RLE when compared to that for the limma-corrected data. Therefore, for the downstream differential expression analysis, we would suggest using  RUV4 as the batch correction method for this specific dataset.
 
 ```{r fig.width=10, fig.height=5}
 plotRLExpr(spe_ruv, assay = 2, color = SlideName) + ggtitle("RUV4")
@@ -755,7 +657,7 @@ colData(spe_ruv)[,seq(ncol(colData(spe_ruv))-3, ncol(colData(spe_ruv)))] |>
 
 ## Establishing a design matrix and contrast
 
-To incorporate the `limma-voom` pipeline, we recommend using the `DGElist` infrastructure. Our `SpatialExperiment` can be easily transform into a `DGElist` object by using the `SE2DGEList` function from the `edgeR` package. For more information about `DGEList` see `?DGEList`.
+To incorporate the `limma-voom` pipeline, we recommend using the `DGElist` infrastructure. Our `SpatialExperiment` can be easily transformed into a `DGElist` object by using the `SE2DGEList` function from the `edgeR` package. For more information about `DGEList` see `?DGEList`.
 
 
 ```{r}
@@ -817,7 +719,7 @@ dge_all <- dge[keep, ]
 
 In the `limma-voom` pipeline, linear modelling is carried out on the log-CPM values by using the `voom`, `lmFit`, `contrasts.fit` and `eBayes` functions. In specific cases where users like to take more considerations of the log fold changes in the statistical analysis, the `treat` function is applied. 
 
-**Notes: If there are samples are from a mixture of patients where subsets of which will have came from each patient (individual). The intra-and-inter patient correlations will need to be accounted for in the modelling. To do this, it is recommended to use the `duplicateCorrelation` function, followed by passing the resulting correlation to the `lmFit` function.**
+**Notes: If there are samples from a mixture of patients where subsets of which will have come from each patient (individual), the intra-and-inter patient correlations will need to be accounted for in the modelling. To do this, it is recommended to use the `duplicateCorrelation` function, followed by passing the resulting correlation to the `lmFit` function.**
 
 
 ```{r}
@@ -1092,11 +994,11 @@ dovissE <- function(fry_out, de_table, topN = 6, title = "", specific_clusters =
 
 A typical vissE analysis produces three plots: 
 
-1. a word-cloud, a network and a gene statistic plot. The word-cloud plot performs a text-mining analysis to automatically annotate gene set clusters (top 9 in this case, ordered by cluster size and the -log10 of the FDR); 
+1. A word-cloud, a network and a gene statistic plot. The word-cloud plot performs a text-mining analysis to automatically annotate gene set clusters (top 9 in this case, ordered by cluster size and the -log10 of the FDR); 
 
-2. the network plot visualises gene sets as a network where nodes are gene-sets and edges connect gene-sets that have genes in common; 
+2. The network plot visualises gene sets as a network where nodes are gene-sets and edges connect gene-sets that have genes in common; 
 
-3. gene statistic plots visualise a gene-specific statistic (a log fold-change in this case) for all genes that belong to gene-sets in the cluster against the number of gene-sets that gene belongs to. 
+3. Gene statistic plots visualise a gene-specific statistic (a log fold-change in this case) for all genes that belong to gene-sets in the cluster against the number of gene-sets that gene belongs to. 
 
 Combined, these three plots enable users to identify higher-order biological processes, characterise these processes (word-clouds), assess the relationships between higher-order processes (network plot), and relate the experiment-specific statistics back to the identified processes (gene statistic plot), thereby providing an integrated view of the data.
 
