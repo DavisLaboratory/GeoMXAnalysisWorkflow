@@ -73,19 +73,19 @@ knitr::write_bib(c(
 
 Nanostring's GeoMx DSP data comes from the GeoMx DSP workflow which integrates standard pathology and molecular profiling to obtain robust and reproducible spatial multiomics data. DSP data typically comes from whole tissue sections, FFPE or fresh frozen samples. These can be imaged and stained for RNA or protein using which specific tissue compartments or cell types to be profiled based on the biology can be selected. These selected `regions` or `areas` of interests will have their count expression levels quantified using either the nCounter Analysis System or an Illumina Sequencer.
 
-GeoMx RNA assays allows quantitative and spatial measurements of transcripts (up to the whole transcriptome) from single sections of FFPE or fixed fresh frozen tissues. Typical gene panels utilised include the Cancer transcriptome Atlas (CTA, ~1800 genes) and Whole Transcriptome Atlas (WTA, ~ 18000 genes). 
+GeoMx RNA assays allows quantitative and spatial measurements of transcripts (up to the whole transcriptome) from single sections of FFPE or fixed fresh frozen tissues. Typical gene panels utilised include the Cancer transcriptome Atlas (CTA, \~1800 genes) and Whole Transcriptome Atlas (WTA, \~18000 genes). 
 
 Count data are generated from the DSP pipeline and technical pre-processed using the GeoMx Data Analysis Suite (DSPDA). This includes the removal of low performing probes and calculation of a typical QC metrics called LOQ using the negative probes. Data normalization are typically conducted based on recommendations from Nanostring by the technologist/technicians with a suggested Q3 normalized data output. 
 
-**Note: Q3-normalised data is not recommended for any bioinformatics workflow or pipeline. Rather, the technical probe corrected counts (probeQC, which accounts for any technical machine systematic errors during the DSP run) is recommended.**
+**Note: Q3-normalized data is not recommended for any bioinformatics workflow or pipeline. Rather, the technical probe corrected counts (probeQC, which accounts for any technical machine systematic errors during the DSP run) is recommended.**
 
 ![flowchart](workflow.jpg)
 
 
 ## Analysis of spatial GeoMX datasets
 
-A typical bioinformatics analysis of a GeoMX DSP dataset often starts with a count table (from sequencing reads of genes for each region of interest (ROI)), and ends with either identifying differential expressed genes or performing gene signature/gene-set scoring pathway/enrichment analyses in various conditions or experimental designs. Nevertheless, before performing any differential expression (DE) analysis or other downstream analyses that are based on the gene counts, proper quality control(QC) and normalisation of the data is essential and if not done properly, will greatly impact the correctness and validity of the DE and corresponding downstream analysis' results. 
-We therefore developed a bioconductor package called `standR` (**S**patial **t**ranscriptomics **a**nalyzes a**n**d **d**ecoding in **R**) to assist the QC, normalisation and batch correction of the GeoMX transcriptomics data. 
+A typical bioinformatics analysis of a GeoMX DSP dataset often starts with a count table (from sequencing reads of genes for each region of interest (ROI)), and ends with either identifying differential expressed genes or performing gene signature/gene-set scoring pathway/enrichment analyses in various conditions or experimental designs. Nevertheless, before performing any differential expression (DE) analysis or other downstream analyses that are based on the gene counts, proper quality control(QC) and normalization of the data is essential and if not done properly, will greatly impact the correctness and validity of the DE and corresponding downstream analysis' results. 
+We therefore developed a bioconductor package called `standR` (**S**patial **t**ranscriptomics **a**nalyzes a**n**d **d**ecoding in **R**) to assist the QC, normalization and batch correction of the GeoMX transcriptomics data. 
 
 There are three major advantages of using the `standR` package to analyse the GeoMX DSP datasets:
 
@@ -102,11 +102,11 @@ In this workshop, we will firstly use `standR` to process and analyse a publishe
 
 ## Load data
 
-The data we are using in this workshop is a published GeoMX whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that was made available by Nanostring (http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/).
+The data we are using in this workshop is a published GeoMX whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that was made available by Nanostring (<http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/>).
 
 This dataset includes data on **seven slides**, which includes **4 DKD and 3 healthy** slides. The ROI selection strategy employed is a regional based approach focused primarily on two distinct structures found in the kidney, namely: **tubules or glomeruli**.   
 
-*Glomeruli* ROIs were identified and curated by a pathologist as either **relatively healthy or diseased** regardless of the tissue type (DKD or healthy).  
+*Glomeruli* ROIs were identified and curated by a pathologist as either **relatively healthy or diseased** regardless of the tissue type (DKD or healthy).\  
 *Tubule* ROIs were segmented into **distal (PanCK positive) and proximal (PanCK negative)** tubules. Distal and proximal tubules are distinct in terms of their differing functions in the kidney.
 
 This GeoMX DSP data can be retrieved by querying the `ExperimentHub` repository. The query below searches for all objects in the hub associated with the search term "standR". 
@@ -202,7 +202,7 @@ Gene metadata are stored in the `rowData` of the object.
 rowData(spe)[1:5,]
 ```
 
-The `readGeoMX` function has other parameters such as `hasNegProbe` and `NegProbeName` that are designed to deal with negative probes in the data. **Then breifly talking about negprobes in both WTA and CTA.**
+The `readGeoMX` function has other parameters such as `hasNegProbe` and `NegProbeName` that are designed to deal with negative probes in the data. In CTA data, there is usually one negative probe names "NegProbe", and for WTA data, there could be one or more negative probes with the same name "NegProbe-WTX".
 By default, the `readGeoMx` function will remove the negative probe, the entry with name "NegProbe-WTX", in the count table and put it in the metadata of the object. User can turn this off by specifying `hasNegProbe = FALSE` in the function, just make sure there are no duplicate gene names in the "TargetName" column.
 
 ```{r}
@@ -232,7 +232,7 @@ spe2
 
 The recommended quality control (QC) checks for the GeoMX transcriptome data consist of three major steps:
 
-1. **Inspection of the sample metadata**: sample metadata can be view in  
+1. **Inspection of the sample metadata**: sample metadata can be view in
 tabular-like format using the `colData` function, however here we aim to 
 visualise the relations across the various sample information, such as which slide 
 did the ROIs came from, which are the control groups and treatment groups, what 
@@ -286,7 +286,7 @@ colData(spe)$regions %>% table()
 ```
 
 
-Re-plot the amended sample annotation to check that the changes have been made.   
+Re-plot the amended sample annotation to check that the changes have been made.\   
 It is now clearer and more straightforward in terms of the comparisons we can establish and work with.
 
 
@@ -517,7 +517,7 @@ plotDR(spe, dimred = "UMAP", col = regions)
 
 If there are observed technical variations identified in the earlier QC steps, 
 before proceeding with any analysis of the data, it is necessary to appropriately
-perform normalisation of the data to rectify/minimise the identified variation.
+perform normalization of the data to rectify/minimise the identified variation.
 
 The `standR` package offers normalization options including TMM, RPKM, 
 TPM, CPM, upperquartile and sizefactor. Among these, RPKM and TPM require gene 
@@ -532,7 +532,7 @@ spe_tmm <- geomxNorm(spe, method = "TMM")
 ```
 
 
-To assess how well the normalisation was able to remove unwanted variataions, 
+To assess how well the normalization was able to remove unwanted variataions, 
 we make use of RLE and PCA plot in conjunction with the factors of interest.
 
 In this case, from the resulting RLE plot, most of the medians of RLE are close 
@@ -932,7 +932,7 @@ We select the following gene sets to conduct gene set enrichment analysis:
 * GO MF - molecular functions from the gene ontology database
 * GO CC - cellular component from the gene ontolgoy database
 
-FDR < 0.05 indicates significantly enriched gene set.
+FDR \< 0.05 indicates significantly enriched gene set.
 
 ## Load Gene sets
 
@@ -1108,7 +1108,7 @@ dovissE(fry_res_sig, de_genes_toptable_DvCinGab, topN = 9, title = "Abnormal glo
 
 # Summary
 
-The analysis of the GeoMX transcriptomics data requires several steps of quality control to ensure the data is of good quality for performing downstream analyses like differential expression analysis with pipelines such as `edgeR`, `limma-voom` or `DEseq2`. The bioconductor package `standR` provides multiple functions for conducting QC and normalisation for the GeoMX DSP datasets.
+The analysis of the GeoMX transcriptomics data requires several steps of quality control to ensure the data is of good quality for performing downstream analyses like differential expression analysis with pipelines such as `edgeR`, `limma-voom` or `DEseq2`. The bioconductor package `standR` provides multiple functions for conducting QC and normalization for the GeoMX DSP datasets.
 
 
 # Packages used {.unnumbered}

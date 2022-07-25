@@ -20,7 +20,7 @@ jobs:
           BiocManager::install(ask=FALSE)
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
         shell: Rscript {0}
-        
+
       - name: Cache R packages
         if: runner.os != 'Windows'
         uses: actions/cache@v1
@@ -38,13 +38,14 @@ jobs:
           Rscript -e "remotes::install_github('r-hub/sysreqs')"
           sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
           sudo -s eval "$sysreqs"
-          
+
       - name: Install dependencies
         run: |
           options(repos = c(CRAN = "https://cran.r-project.org"))
           BiocManager::repositories()
           remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories())
           remotes::install_cran("rcmdcheck")
+          remotes::install_github('DavisLaboratory/standR')
         shell: Rscript {0}
 
       - name: Check
@@ -52,7 +53,7 @@ jobs:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
         run: rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "warning", check_dir = "check")
         shell: Rscript {0}
-      
+
 
       - name: Build pkgdown
         run: |
@@ -83,7 +84,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        
+
       - name: Set Environment Variables
         run: |
           REPO_LOWER="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
@@ -92,7 +93,7 @@ jobs:
           echo "GIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
           echo "REGISTRY=${REGISTRY}" >> $GITHUB_ENV
           echo "IMAGE=${REGISTRY}/${REPO_LOWER}" >> $GITHUB_ENV
-          
+
       - name: Show environment
         run: |
           env
