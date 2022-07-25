@@ -1,5 +1,5 @@
 ---
-title: "Analysing Nanostring's GeoMX transcriptomics data using standR, limma and vissE"
+title: "Analysing Nanostring's GeoMx transcriptomics data using standR, limma and vissE"
 author:
   - name: Ning Liu
     affiliation:
@@ -30,7 +30,7 @@ nocite: |
   @R-ggplot2, @R-knitr, @R-BiocWorkflowTools, @R-rmarkdown, @R-prettydoc
 bibliography: [packages.bib]
 vignette: >
-  %\VignetteIndexEntry{Analysing Nanostring's GeoMX transcriptomics data using standR, limma and vissE.}
+  %\VignetteIndexEntry{Analysing Nanostring's GeoMx transcriptomics data using standR, limma and vissE.}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 keywords: DifferentialExpression, Normalization, QualityControl, Spatial, Transcriptomics
@@ -67,7 +67,7 @@ knitr::write_bib(c(
 
 # Background and introduction
 
-## Nanostring GeoMX data
+## Nanostring GeoMx data
 
 Nanostring's GeoMx DSP data comes from the GeoMx DSP workflow which integrates standard pathology and molecular profiling to obtain robust and reproducible spatial multiomics data. DSP data typically comes from whole tissue sections, FFPE or fresh frozen samples. These can be imaged and stained for RNA or protein. The selected `regions` or `areas` of interests will have their count expression levels quantified using either the nCounter Analysis System or an Illumina Sequencer.
 
@@ -80,34 +80,34 @@ Count data are generated from the DSP pipeline and technically pre-processed usi
 ![](workflow.jpg)
 
 
-## Analysis of spatial GeoMX datasets
+## Analysis of spatial GeoMx datasets
 
-A typical bioinformatics analysis of a GeoMX DSP dataset often starts with a count table (from sequencing reads of genes for each region of interest (ROI)), and ends with either identifying differential expressed genes or performing gene signature/gene-set scoring pathway/enrichment analyses in various conditions or experimental designs. Nevertheless, before performing any differential expression (DE) analysis or other downstream analyses that are based on the gene counts, proper quality control(QC) and normalization of the data is essential and if not done properly, will greatly impact the correctness and validity of the DE and corresponding downstream analysis' results. 
-We therefore developed a bioconductor package called `standR` (**S**patial **t**ranscriptomics **a**nalyzes a**n**d **d**ecoding in **R**) to assist the QC, normalization and batch correction of the GeoMX transcriptomics data. 
+A typical bioinformatics analysis of a GeoMx DSP dataset often starts with a count table (from sequencing reads of genes for each region of interest (ROI)), and ends with either identifying differential expressed genes or performing gene signature/gene-set scoring pathway/enrichment analyses in various conditions or experimental designs. Nevertheless, before performing any differential expression (DE) analysis or other downstream analyses that are based on the gene counts, proper quality control(QC) and normalization of the data is essential and if not done properly, will greatly impact the correctness and validity of the DE and corresponding downstream analysis' results. 
+We therefore developed a bioconductor package called `standR` (**S**patial **t**ranscriptomics **a**nalyzes a**n**d **d**ecoding in **R**) to assist the QC, normalization and batch correction of the GeoMx transcriptomics data. 
 
-There are three major advantages of using the `standR` package to analyse the GeoMX DSP datasets:
+There are three major advantages of using the `standR` package to analyse the GeoMx DSP datasets:
 
 1. The package uses the `SpatialExperiment` infrastructure to analyse the data. This infrastructure is a lineage of the `SummarisedExperiment` family, which is highly recommended in the bioconductor community. It is compatible and transferable with many other well developed packages in the RNA-seq analysis world, such as `scater`, `scran`, `edgeR` and `limma`.
 
 2. The package features a comprehensive route for quality control, and provides various visualisation functions to help in the assessment of the various quality control metrics.
 
-3. Batch effect is a common feature in transcriptomic datasets, especially in GeoMX DSP data due to the way the slides are typically utilised due to experimental constrains/designs. The package currently provides three batch correction methods that will remove the unwanted batch effect and provides statistics for assessing the correction process and outcomes.
+3. Batch effect is a common feature in transcriptomic datasets, especially in GeoMx DSP data due to the way the slides are typically utilised due to experimental constrains/designs. The package currently provides three batch correction methods that will remove the unwanted batch effect and provides statistics for assessing the correction process and outcomes.
 
-In this workshop, we will firstly use `standR` to process and analyse a published GeoMX WTA dataset using the recommended workflow. This will demonstrate our recommended workflow for processing and analysing GeoMX transcriptomics datasets. Secondly, we will perform  DE analysis of the processed data using the `limma-voom` pipeline, followed by a gene-set enrichment analysis using `fry` and subsequent visualisation of the higher order results using the R package `vissE`.
+In this workshop, we will firstly use `standR` to process and analyse a published GeoMx WTA dataset using the recommended workflow. This will demonstrate our recommended workflow for processing and analysing GeoMx transcriptomics datasets. Secondly, we will perform  DE analysis of the processed data using the `limma-voom` pipeline, followed by a gene-set enrichment analysis using `fry` and subsequent visualisation of the higher order results using the R package `vissE`.
 
 
-# Using standR to process and analyse GeoMX transcriptomics data
+# Using standR to process and analyse GeoMx transcriptomics data
 
 ## Load data
 
-The data we are using in this workshop is a published GeoMX whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that was made available by Nanostring (<http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/>).
+The data we are using in this workshop is a published GeoMx whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that was made available by Nanostring (<http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/>).
 
 This dataset includes data on **seven slides**, which includes **4 DKD and 3 healthy** slides. The ROI selection strategy employed is a regional based approach focused primarily on two distinct structures found in the kidney, namely: **tubules or glomeruli**.   
 
 *Glomeruli* ROIs were identified and curated by a pathologist as either **relatively healthy or diseased** regardless of the tissue type (DKD or healthy).\  
 *Tubule* ROIs were segmented into **distal (PanCK positive) and proximal (PanCK negative)** tubules. Distal and proximal tubules are distinct in terms of their differing functions in the kidney.
 
-This GeoMX DSP data can be retrieved by querying the `ExperimentHub` repository. The query below searches for all objects in the hub associated with the search term "standR". 
+This GeoMx DSP data can be retrieved by querying the `ExperimentHub` repository. The query below searches for all objects in the hub associated with the search term "standR". 
 
 ```{r}
 library(ExperimentHub)
@@ -117,7 +117,7 @@ query(eh, "standR")
 
 ```
 
-The three files that are associated with the DKD GeoMX data in the `standR` package can then be retrieved by specifying their IDs.
+The three files that are associated with the DKD GeoMx data in the `standR` package can then be retrieved by specifying their IDs.
 The respective objects can then be retrieved using the accession IDs ("EH7364" for counts,"EH7365" for sample annotation,"EH7366" for gene annotations) 
 
 ```{r}
@@ -230,7 +230,7 @@ spe2
 
 ## Quality control
 
-The recommended quality control (QC) checks for the GeoMX transcriptome data consist of three major steps:
+The recommended quality control (QC) checks for the GeoMx transcriptome data consist of three major steps:
 
 1. **Inspection of the sample metadata**: Sample metadata can be view in\ tabular-like format using the `colData` function, however here we aim to visualise the relations across the various sample information, such as which slide did the ROIs came from, which are the control groups and treatment groups, what are the pre-defined tissue types etc. By doing this, we will have an overview of how the experiment was designed, the potential questions of interest, are there clear batch effects to look out for, and the comparisons of interest that can be established. 
 
@@ -336,7 +336,7 @@ spe <- spe[, qc]
 
 **Note: The same workflow and logic can also be applied to the nuclei count. We will also check the gene detection rate to assess the quality of the dataset.**
 
-The function `plotROIQC` is looking at nuclei count and library size of each ROI by default. User can change the x or y axis to any other statics they want to QC by specifying the parameter `x_axis` or `y_axis`. For example, the statistics limit of quantification (LOQ) is summarised by the Nanostring process pipeline and it's provided in most/all of the GeoMX DSP dataset. This metrics is calculated based on the distribution of the negative probes, and it's suggested by Nanostring that LOQ can be useful when there are large segments (i.e. big ROI or high cell count samples), and a minimum LOQ of 2 is recommended.
+The function `plotROIQC` is looking at nuclei count and library size of each ROI by default. User can change the x or y axis to any other statics they want to QC by specifying the parameter `x_axis` or `y_axis`. For example, the statistics limit of quantification (LOQ) is summarised by the Nanostring process pipeline and it's provided in most/all of the GeoMx DSP dataset. This metrics is calculated based on the distribution of the negative probes, and it's suggested by Nanostring that LOQ can be useful when there are large segments (i.e. big ROI or high cell count samples), and a minimum LOQ of 2 is recommended.
 
 ```{r}
 plotROIQC(spe,  y_axis = "LOQ", y_lab = "LOQ", x_axis = "lib_size", x_lab = "Library size",  y_threshold = 2, col = SlideName)
@@ -492,7 +492,7 @@ plotPairPCA(spe_tmm, precomputed = pca_results_tmm, color = disease_status, shap
 
 ## Batch correction
 
-In the Nanostring's GeoMX DSP protocol, each slide is typically only able to  fit a handful of tissue segments (Tissue microarrays/FFPE cores), it is common that DSP data are confounded by the batch effect introduced by the different slides. In order to establish appropriate comparisons between the ROIs in the downstream analyses, it is necessary to remove this batch effect from the data.
+In the Nanostring's GeoMx DSP protocol, each slide is typically only able to  fit a handful of tissue segments (Tissue microarrays/FFPE cores), it is common that DSP data are confounded by the batch effect introduced by the different slides. In order to establish appropriate comparisons between the ROIs in the downstream analyses, it is necessary to remove this batch effect from the data.
 
 In the `standR` package, we provide two approaches for removing batch effects (RUV4 and Limma), more methods (e.g. RUVg) are included in the development version.
 
@@ -643,7 +643,7 @@ plotRLExpr(spe_lrb, assay = 2, color = SlideName) + ggtitle("Limma removeBatch")
 
 For the downstream analyses such as differential expression analyses, standR does not provide specific functions. 
 
-Instead, we recommend incorporating the workflow with well established pipelines, such as `edgeR`, `limma-voom` or `DESeq2`. These pipelines uses linear modelling which borrow information from all genes, making it more appropriate for complex dataset with various experimental factors. A simple T-test is definitely not recommended for performing DE analysis of GeoMX DSP data.
+Instead, we recommend incorporating the workflow with well established pipelines, such as `edgeR`, `limma-voom` or `DESeq2`. These pipelines uses linear modelling which borrow information from all genes, making it more appropriate for complex dataset with various experimental factors. A simple T-test is definitely not recommended for performing DE analysis of GeoMx DSP data.
 
 In this workshop, we'll demonstrate the DE analysis using the `limma-voom` pipeline.
 
@@ -1010,7 +1010,7 @@ dovissE(fry_res_sig, de_genes_toptable_DvCinGab, topN = 9, title = "Abnormal glo
 
 # Summary
 
-The analysis of the GeoMX transcriptomics data requires several steps of quality control to ensure the data is of good quality for performing downstream analyses like differential expression analysis with pipelines such as `edgeR`, `limma-voom` or `DEseq2`. The bioconductor package `standR` provides multiple functions for conducting QC and normalization for the GeoMX DSP datasets.
+The analysis of the GeoMx transcriptomics data requires several steps of quality control to ensure the data is of good quality for performing downstream analyses like differential expression analysis with pipelines such as `edgeR`, `limma-voom` or `DEseq2`. The bioconductor package `standR` provides multiple functions for conducting QC and normalization for the GeoMx DSP datasets.
 
 
 # Packages used {.unnumbered}

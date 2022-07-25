@@ -1,18 +1,18 @@
-# Analysing GeoMX DSP dataset with standR
+# Analysing GeoMx DSP dataset with standR
 
 ## Overview
 
-This workshop will focus on performing analysis of spatial transcriptomics data from the Nanostring GeoMX DSP platform. We will perform data QC, normalisation and batch correction using methods in the `standR` package to analyse a publicly available GeoMX WTA dataset. Following this, we will perform differential expression analysis using tools from the `limma` and `edgeR` packages. Finally, we will carry out a gene set enrichment analysis (GSEA) using `fry` from the `limma` package and visualise and interpret the GSEA results using the `vissE` package.
+This workshop will focus on performing analysis of spatial transcriptomics data from the Nanostring GeoMx DSP platform. We will perform data QC, normalisation and batch correction using methods in the `standR` package to analyse a publicly available GeoMx WTA dataset. Following this, we will perform differential expression analysis using tools from the `limma` and `edgeR` packages. Finally, we will carry out a gene set enrichment analysis (GSEA) using `fry` from the `limma` package and visualise and interpret the GSEA results using the `vissE` package.
 
 The workshop will be organised into two broad sections:
 * Processing and analysing the data using standR
 * Performing DE analysis and GSEA
 
-Detailed material can be found [here](https://davislaboratory.github.io/GeoMXAnalysisWorkflow/).
+Detailed material can be found [here](https://davislaboratory.github.io/GeoMxAnalysisWorkflow/).
 
 ## Pre-requisites 
 
-The workshop is aimed at researchers who are interested in analysing GeoMX transcriptomics data. 
+The workshop is aimed at researchers who are interested in analysing GeoMx transcriptomics data. 
 Some basic R knowledge is assumed - this is not an introduction to R course. 
 If you are not familiar with the R statistical programming language it is strongly suggested that you work through an introductory R course before you attend this workshop.
 
@@ -44,16 +44,16 @@ The following key R packages will be used:
 
 ### Learning goals
 
- - Learn how to analyse GeoMX transcriptomics data using standR.
- - Learn how to perform DE analysis with the GeoMX transcriptomics data using limma.
+ - Learn how to analyse GeoMx transcriptomics data using standR.
+ - Learn how to perform DE analysis with the GeoMx transcriptomics data using limma.
  - Learn how to visualize the GSEA results using vissE.
 
 ### Learning objectives
 
- - Generate QC plots for the GeoMX transcriptomics data.
- - Perform normalisation/batch correction on the GeoMX transcriptomics data.
+ - Generate QC plots for the GeoMx transcriptomics data.
+ - Perform normalisation/batch correction on the GeoMx transcriptomics data.
  - Assessing the normalisation/batch correction results.
- - Perform differential expression ananlysis on the GeoMX transcriptomics data.
+ - Perform differential expression ananlysis on the GeoMx transcriptomics data.
  - Perform gene set enrichment analysis on the DE results.
  - Apply vissE to identify higher-order phenotypes and to visualise the GSEA results.
 

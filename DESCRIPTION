@@ -25,7 +25,7 @@ Authors@R:
         comment = c(ORCID = '0000-0003-4864-7033')
       )
     )
-Description: A workshop demostrating the analysis workflow of GeoMX transcriptmoics data.
+Description: A workshop demostrating the analysis workflow of GeoMx transcriptmoics data.
 Maintainer: Ning Liu <liu.n@wehi.edu.au>
 License: GPL (>= 3) + file LICENSE
 Encoding: UTF-8
