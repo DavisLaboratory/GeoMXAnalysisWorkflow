@@ -56,14 +56,13 @@ Imports:
     DT,
     scater,
     ggpubr,
-    uwot
+    uwot,
+    statmod,
+    prettydoc
 Suggests: 
     knitr,
-    prettydoc,
     rmarkdown,
-    statmod,
     RColorBrewer,
-    dplyr,
     pkgdown
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.2
