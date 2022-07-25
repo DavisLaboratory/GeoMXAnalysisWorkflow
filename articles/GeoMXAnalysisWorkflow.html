@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Analysing Nanostring's GeoMX transcriptomics data using standR, limma and vissE • GeoMXAnalysisWorkflow</title>
+<title>Analysing Nanostring's GeoMx transcriptomics data using standR, limma and vissE • GeoMXAnalysisWorkflow</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Analysing Nanostring's GeoMX transcriptomics data using standR, limma and vissE">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Analysing Nanostring's GeoMx transcriptomics data using standR, limma and vissE">
 <meta property="og:description" content="GeoMXAnalysisWorkflow">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -70,7 +70,7 @@
 <script src="GeoMXAnalysisWorkflow_files/crosstalk-1.2.0/js/crosstalk.min.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Analysing Nanostring’s GeoMX transcriptomics
+      <h1 data-toc-skip>Analysing Nanostring’s GeoMx transcriptomics
 data using standR, limma and vissE</h1>
                         <h4 data-toc-skip class="author">Ning Liu</h4>
             <address class="author_afil">
@@ -116,7 +116,7 @@ Australia<br><a class="author_email" href="mailto:#"></a><a href="mailto:davis.m
 <h2 id="background-and-introduction">Background and introduction<a class="anchor" aria-label="anchor" href="#background-and-introduction"></a>
 </h2>
 <div class="section level3">
-<h3 id="nanostring-geomx-data">Nanostring GeoMX data<a class="anchor" aria-label="anchor" href="#nanostring-geomx-data"></a>
+<h3 id="nanostring-geomx-data">Nanostring GeoMx data<a class="anchor" aria-label="anchor" href="#nanostring-geomx-data"></a>
 </h3>
 <p>Nanostring’s GeoMx DSP data comes from the GeoMx DSP workflow which
 integrates standard pathology and molecular profiling to obtain robust
@@ -144,9 +144,9 @@ systematic errors during the DSP run) is recommended.</strong></p>
 <p><img src="workflow.jpg"></p>
 </div>
 <div class="section level3">
-<h3 id="analysis-of-spatial-geomx-datasets">Analysis of spatial GeoMX datasets<a class="anchor" aria-label="anchor" href="#analysis-of-spatial-geomx-datasets"></a>
+<h3 id="analysis-of-spatial-geomx-datasets">Analysis of spatial GeoMx datasets<a class="anchor" aria-label="anchor" href="#analysis-of-spatial-geomx-datasets"></a>
 </h3>
-<p>A typical bioinformatics analysis of a GeoMX DSP dataset often starts
+<p>A typical bioinformatics analysis of a GeoMx DSP dataset often starts
 with a count table (from sequencing reads of genes for each region of
 interest (ROI)), and ends with either identifying differential expressed
 genes or performing gene signature/gene-set scoring pathway/enrichment
@@ -160,9 +160,9 @@ bioconductor package called <code>standR</code>
 (<strong>S</strong>patial <strong>t</strong>ranscriptomics
 <strong>a</strong>nalyzes a<strong>n</strong>d <strong>d</strong>ecoding
 in <strong>R</strong>) to assist the QC, normalization and batch
-correction of the GeoMX transcriptomics data.</p>
+correction of the GeoMx transcriptomics data.</p>
 <p>There are three major advantages of using the <code>standR</code>
-package to analyse the GeoMX DSP datasets:</p>
+package to analyse the GeoMx DSP datasets:</p>
 <ol style="list-style-type: decimal">
 <li><p>The package uses the <code>SpatialExperiment</code>
 infrastructure to analyse the data. This infrastructure is a lineage of
@@ -175,16 +175,16 @@ analysis world, such as <code>scater</code>, <code>scran</code>,
 and provides various visualisation functions to help in the assessment
 of the various quality control metrics.</p></li>
 <li><p>Batch effect is a common feature in transcriptomic datasets,
-especially in GeoMX DSP data due to the way the slides are typically
+especially in GeoMx DSP data due to the way the slides are typically
 utilised due to experimental constrains/designs. The package currently
 provides three batch correction methods that will remove the unwanted
 batch effect and provides statistics for assessing the correction
 process and outcomes.</p></li>
 </ol>
 <p>In this workshop, we will firstly use <code>standR</code> to process
-and analyse a published GeoMX WTA dataset using the recommended
+and analyse a published GeoMx WTA dataset using the recommended
 workflow. This will demonstrate our recommended workflow for processing
-and analysing GeoMX transcriptomics datasets. Secondly, we will perform
+and analysing GeoMx transcriptomics datasets. Secondly, we will perform
 DE analysis of the processed data using the <code>limma-voom</code>
 pipeline, followed by a gene-set enrichment analysis using
 <code>fry</code> and subsequent visualisation of the higher order
@@ -192,12 +192,12 @@ results using the R package <code>vissE</code>.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="using-standr-to-process-and-analyse-geomx-transcriptomics-data">Using standR to process and analyse GeoMX transcriptomics data<a class="anchor" aria-label="anchor" href="#using-standr-to-process-and-analyse-geomx-transcriptomics-data"></a>
+<h2 id="using-standr-to-process-and-analyse-geomx-transcriptomics-data">Using standR to process and analyse GeoMx transcriptomics data<a class="anchor" aria-label="anchor" href="#using-standr-to-process-and-analyse-geomx-transcriptomics-data"></a>
 </h2>
 <div class="section level3">
 <h3 id="load-data">Load data<a class="anchor" aria-label="anchor" href="#load-data"></a>
 </h3>
-<p>The data we are using in this workshop is a published GeoMX whole
+<p>The data we are using in this workshop is a published GeoMx whole
 transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that
 was made available by Nanostring (<a href="http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/" class="external-link uri">http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/</a>).</p>
 <p>This dataset includes data on <strong>seven slides</strong>, which
@@ -211,7 +211,7 @@ the tissue type (DKD or healthy).  <em>Tubule</em> ROIs were segmented
 into <strong>distal (PanCK positive) and proximal (PanCK
 negative)</strong> tubules. Distal and proximal tubules are distinct in
 terms of their differing functions in the kidney.</p>
-<p>This GeoMX DSP data can be retrieved by querying the
+<p>This GeoMx DSP data can be retrieved by querying the
 <code>ExperimentHub</code> repository. The query below searches for all
 objects in the hub associated with the search term “standR”.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
@@ -233,7 +233,7 @@ objects in the hub associated with the search term “standR”.</p>
 <span><span class="co">##   EH7364 | GeomxDKDdata_count      </span></span>
 <span><span class="co">##   EH7365 | GeomxDKDdata_sampleAnno </span></span>
 <span><span class="co">##   EH7366 | GeomxDKDdata_featureAnno</span></span></code></pre>
-<p>The three files that are associated with the DKD GeoMX data in the
+<p>The three files that are associated with the DKD GeoMx data in the
 <code>standR</code> package can then be retrieved by specifying their
 IDs. The respective objects can then be retrieved using the accession
 IDs (“EH7364” for counts,“EH7365” for sample annotation,“EH7366” for
@@ -467,7 +467,7 @@ workflow.</p>
 <div class="section level3">
 <h3 id="quality-control">Quality control<a class="anchor" aria-label="anchor" href="#quality-control"></a>
 </h3>
-<p>The recommended quality control (QC) checks for the GeoMX
+<p>The recommended quality control (QC) checks for the GeoMx
 transcriptome data consist of three major steps:</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Inspection of the sample metadata</strong>: Sample
@@ -632,7 +632,7 @@ library size of each ROI by default. User can change the x or y axis to
 any other statics they want to QC by specifying the parameter
 <code>x_axis</code> or <code>y_axis</code>. For example, the statistics
 limit of quantification (LOQ) is summarised by the Nanostring process
-pipeline and it’s provided in most/all of the GeoMX DSP dataset. This
+pipeline and it’s provided in most/all of the GeoMx DSP dataset. This
 metrics is calculated based on the distribution of the negative probes,
 and it’s suggested by Nanostring that LOQ can be useful when there are
 large segments (i.e. big ROI or high cell count samples), and a minimum
@@ -809,7 +809,7 @@ interest (which is between disease and normal).</p>
 <div class="section level3">
 <h3 id="batch-correction">Batch correction<a class="anchor" aria-label="anchor" href="#batch-correction"></a>
 </h3>
-<p>In the Nanostring’s GeoMX DSP protocol, each slide is typically only
+<p>In the Nanostring’s GeoMx DSP protocol, each slide is typically only
 able to fit a handful of tissue segments (Tissue microarrays/FFPE
 cores), it is common that DSP data are confounded by the batch effect
 introduced by the different slides. In order to establish appropriate
@@ -1014,7 +1014,7 @@ established pipelines, such as <code>edgeR</code>,
 linear modelling which borrow information from all genes, making it more
 appropriate for complex dataset with various experimental factors. A
 simple T-test is definitely not recommended for performing DE analysis
-of GeoMX DSP data.</p>
+of GeoMx DSP data.</p>
 <p>In this workshop, we’ll demonstrate the DE analysis using the
 <code>limma-voom</code> pipeline.</p>
 <p>We’ve shown in previous sections that for this dataset, using RUV4
@@ -1411,13 +1411,13 @@ the data.</p>
 <div class="section level2">
 <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
-<p>The analysis of the GeoMX transcriptomics data requires several steps
+<p>The analysis of the GeoMx transcriptomics data requires several steps
 of quality control to ensure the data is of good quality for performing
 downstream analyses like differential expression analysis with pipelines
 such as <code>edgeR</code>, <code>limma-voom</code> or
 <code>DEseq2</code>. The bioconductor package <code>standR</code>
 provides multiple functions for conducting QC and normalization for the
-GeoMX DSP datasets.</p>
+GeoMx DSP datasets.</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="packages-used">Packages used<a class="anchor" aria-label="anchor" href="#packages-used"></a>
