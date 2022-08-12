@@ -193,7 +193,7 @@ assay(spe, "logcounts")[1:5,1:5]
 Sample metadata is stored in the `colData` of the object.
 
 ```{r}
-colData(spe)[1:5,1:5]
+colData(spe)
 ```
 
 Gene metadata are stored in the `rowData` of the object.
@@ -731,7 +731,7 @@ fit_contrast <- contrasts.fit(fit, contrasts = contr.matrix)
 
 efit <- eBayes(fit_contrast, robust = TRUE)
 
-tfit <- treat(efit)
+tfit <- treat(fit_contrast)
 
 ```
 
@@ -860,7 +860,7 @@ gsc <- c(subsetCollection(msigdb_hs, c('h')),
 
 ## Enrichment analysis
 
-Preprocessing is conducted on these genesets, filtering out genesets with less than 5 genes and creating indices vector list for formatting on the results after applying `fry`.
+Preprocessing is conducted on these genesets, filtering out genesets with less than 5 genes and creating indices vector list for formatting on the results before applying `fry`.
 
 ```{r}
 fry_indices <- ids2indices(lapply(gsc, geneIds), rownames(v), remove.empty = FALSE)
