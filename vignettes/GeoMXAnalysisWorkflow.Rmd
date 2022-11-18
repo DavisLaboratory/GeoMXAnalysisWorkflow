@@ -55,7 +55,6 @@ library(tidyverse)
 library(vissE)
 library(GSEABase)
 library(msigdb)
-library(ggalluvial)
 library(ExperimentHub)
 
 #automatically create a bib database for R packages
@@ -100,30 +99,17 @@ In this workshop, we will firstly use `standR` to process and analyse a publishe
 
 ## Load data
 
-The data we are using in this workshop is a published GeoMx whole transcriptome atlas (WTA) dataset of diabetic kidney disease (DKD) that was made available by Nanostring (<http://nanostring-public-share.s3-website-us-west-2.amazonaws.com/GeoScriptHub/KidneyDataset/>).
+The data we are using in this workshop is a published GeoMx whole transcriptome atlas (WTA) dataset of Lymph node tissue that was made available by Nanostring's Spatial Organ Atlas (<https://nanostring.com/products/geomx-digital-spatial-profiler/spatial-organ-atlas/>).
 
-This dataset includes data on **seven slides**, which includes **4 DKD and 3 healthy** slides. The ROI selection strategy employed is a regional based approach focused primarily on two distinct structures found in the kidney, namely: **tubules or glomeruli**.   
+This dataset includes data on **five slides**. The ROI selection strategy employed is a regional based approach focused primarily on 5 distinct structures found in the lymph node, namely: **B cell zone, T cell zone, Germinal center, Medulla and Trabecula**.
 
-*Glomeruli* ROIs were identified and curated by a pathologist as either **relatively healthy or diseased** regardless of the tissue type (DKD or healthy).\  
-*Tubule* ROIs were segmented into **distal (PanCK positive) and proximal (PanCK negative)** tubules. Distal and proximal tubules are distinct in terms of their differing functions in the kidney.
-
-This GeoMx DSP data can be retrieved by querying the `ExperimentHub` repository. The query below searches for all objects in the hub associated with the search term "standR". 
 
 ```{r}
-library(ExperimentHub)
+library(tidyverse)
 
-eh <- ExperimentHub()
-query(eh, "standR")
-
-```
-
-The three files that are associated with the DKD GeoMx data in the `standR` package can then be retrieved by specifying their IDs.
-The respective objects can then be retrieved using the accession IDs ("EH7364" for counts,"EH7365" for sample annotation,"EH7366" for gene annotations) 
-
-```{r}
-countFile <- eh[["EH7364"]]
-sampleAnnoFile <- eh[["EH7365"]]
-featureAnnoFile <- eh[["EH7366"]]
+countFile <- read_tsv("../inst/extdata//count.txt") %>% as.data.frame()
+sampleAnnoFile <- read_tsv("../inst/extdata/metadata.txt") %>% as.data.frame()
+featureAnnoFile <- read_tsv("../inst/extdata/genemeta.txt") %>% as.data.frame()
 ```
 
 We can have a first look at the format of the three files, which are the typical files made available by NanoString.
@@ -131,25 +117,25 @@ We can have a first look at the format of the three files, which are the typical
 The `countFile` is a tab-delimited file, it contains the count table (features by samples) we generally see in transcriptomics analysis. By default as provided by the Nanostring, it is required to have the gene name column with the column name of "TargetName".
 
 ```{r}
-read.delim(countFile, nrows = 5)[,1:3]
+head(countFile)[,1:5]
 ```
 
 
 The `sampleAnnoFile` is a tab-delimited file, containing all the annotation (metadata) for the samples. By default as provided by the Nanostring, it is required to include the sample name column with the column name of "SegmentDisplayName".
 
 ```{r}
-read.delim(sampleAnnoFile, nrows = 5)[,1:5]
+head(sampleAnnoFile)[,1:5]
 ```
 
 
 The `featureAnnoFile` is a tab-delimited file, containing all the annotation (metadata) of the genes in the dataset. By default as provided by the Nanostring, it is required to include the gene name column with the column name of "TargetName".
 
 ```{r}
-read.delim(featureAnnoFile, nrows = 5)
+head(featureAnnoFile)[,1:5]
 ```
 
 
-As  described in the introduction, there are many advantages to use a mature infrastructure throughout the analysis, such as compatibility with other tools.
+As described in the introduction, there are many advantages to use a mature infrastructure throughout the analysis, such as compatibility with other tools.
 
 Therefore, the first step in the `standR` package workflow is to construct a `SpatialExperiment` object that includes all the information available in the data. Here we can use the function `readGeoMX` to do so. For more information about the `SpatialExperiment` infrastructure, see [here](http://www.bioconductor.org/packages/release/bioc/html/SpatialExperiment.html).
 
@@ -160,18 +146,25 @@ Therefore, the first step in the `standR` package workflow is to construct a `Sp
 ```{r message=FALSE}
 library(standR)
 
-spe <- readGeoMx(countFile, sampleAnnoFile, featureAnnoFile = featureAnnoFile)
+spe <- readGeoMx(countFile, sampleAnnoFile, featureAnnoFile)
 ```
 
+
+```{r}
+spe <- readGeoMx("../inst/extdata/count.txt",
+                 "../inst/extdata/metadata.txt",
+                 "../inst/extdata/genemeta.txt")
+```
+
+
 Check the basic information about the dataset by entering the object name directly. 
-We see that the data has measurements for approximately 18503 genes and 231 ROIs.
+We see that the data has measurements for approximately 18676 genes and 190 ROIs.
 
 ```{r}
 spe
 ```
 
 Both count-level data and logCPM measurements are stored in the `spatialExperiment` object. Specifically, the raw count data is stored in the `counts` assay slot, while the log-CPM (count per million) of the data is calculated by default with the `readGeoMX` function and stored in the `logcounts` assay of the object.
-
 
 ```{r}
 library(SpatialExperiment)
@@ -193,13 +186,13 @@ assay(spe, "logcounts")[1:5,1:5]
 Sample metadata is stored in the `colData` of the object.
 
 ```{r}
-colData(spe)
+colData(spe)[1:5,1:5]
 ```
 
 Gene metadata are stored in the `rowData` of the object.
 
 ```{r}
-rowData(spe)[1:5,]
+rowData(spe)[1:5,1:5]
 ```
 
 The `readGeoMX` function has other parameters such as `hasNegProbe` and `NegProbeName` that are designed to deal with negative probes in the data. In CTA data, there is usually one negative probe names "NegProbe", and for WTA data, there could be one or more negative probes with the same name "NegProbe-WTX".
@@ -208,8 +201,6 @@ By default, the `readGeoMx` function will remove the negative probe, the entry w
 ```{r}
 metadata(spe)$NegProbes[,1:5]
 ```
-
-
 
 
 
@@ -223,6 +214,29 @@ dge <- edgeR::SE2DGEList(spe)
 spe2 <- readGeoMxFromDGE(dge)
 
 spe2
+```
+
+## Check QCFlags
+
+In the meta data file generated by Nanostring, there is a column called "QCFlags", which indicates bad quality tissue samples in their preliminary QC step. If the data is fine from their QC, you will see NA/empty cells in this column. On the other hand, if you see the any flags in your data, such as:
+
+- Low Nuclei Count,Low Negative Probe Count for Probe Kit Human NGS Whole Transcriptome Atlas RNA
+
+- Low Nuclei Count
+
+- Low Surface Area,Low Nuclei Count,Low Negative Probe Count for Probe Kit Human NGS Whole Transcriptome Atlas RNA
+
+Please considering remove the ROI from the analysis.
+
+This our example dataset, we see all NA in the meta data, indicating all tissue samples are of good quality from the Nanostring's QC.
+
+```{r}
+colData(spe)$QCFlags
+```
+
+
+```{r}
+#spe <- spe[,!grepl("Low",colData(spe)$QCFlags)]
 ```
 
 
@@ -242,45 +256,13 @@ The recommended quality control (QC) checks for the GeoMx transcriptome data con
 ### Sample level QC
 
 To visualise sample metadata, we can use the `plotSampleInfo` function. 
-In this dataset, the following key features are of interest for which we would like to look at: slides ("SlideName"), diseases status ("disease_status"), tissue regions ("region"), and the   different cancer subtypes ("pathology"). These can be queries by listing them in the function. 
+In this dataset, the following key features are of interest for which we would like to look at: slides ("SlideName") and sub-tissue types ("Type"). These can be queries by listing them in the function. 
 
 ```{r}
 library(ggplot2)
-library(ggalluvial)
 
-plotSampleInfo(spe, column2plot = c("SlideName","disease_status","region","SegmentLabel","pathology"))
+plotSampleInfo(spe, column2plot = c("SlideName","Type"))
 ```
-
-
-Based on the known sample information, we know that all the *glomerulus* ROIs are classified as either abnormal or healthy, and *tubule* are classified as PanCK negative("neg") or positive ("PanCK"). 
-
-We therefore merge the region and segment/pathology related annotations to avoid collinearity, which can cause problems when dealing with batch correction. Specifically:  
-
-For *glomerulus*, "region" will concatenate with "pathology".
-
-For *tubule*, "region" will concatenate with "segmentLabel". 
-
-
-```{r}
-colData(spe)$regions <- paste0(colData(spe)$region,"_",colData(spe)$SegmentLabel) %>%
-  gsub("_Geometric Segment","",.) %>%
-  paste0("_",colData(spe)$pathology) %>%
-  gsub("_NA","",.)
-
-
-colData(spe)$regions %>% table()
-```
-
-
-Re-plot the amended sample annotation to check that the changes have been made.\   
-It is now clearer and more straightforward in terms of the comparisons we can establish and work with.
-
-
-```{r}
-plotSampleInfo(spe, column2plot = c("SlideName","disease_status","regions"))
-```
-
-
 
 ### Gene level QC
 
@@ -290,7 +272,7 @@ Now we check on the gene level data. Using the `addPerROIQC` function, we can ad
 spe <- addPerROIQC(spe, rm_genes = TRUE)
 ```
 
-Looking at the object again, we can see that 121 genes were removed.
+Looking at the object again, we can see that no genes were removed.
 
 The count matrix of the genes that were removed will be stored in the `metadata` of the object with prefix *genes_rm*, alongside the calculated expression threshold (*lcpm_threshold*).
 
@@ -305,9 +287,17 @@ Using the `plotGeneQC` function, we can then assess the logCPM expressions of th
 
 Moreover, users can order the samples (using parameter `ordannots`) or color/shape the dots by specific annotation to better compare and assess for specific biological or experimental factors which are influencing how these genes were expressed across the samples (e.g. gene may be highly expressed in particular tissue types or under particular treatment conditions. These genes are to be access or curated by domain experts to ascertain or determine if any of these genes are of biological/experimental significance. This provides a potential warning to whether the experiments have worked as per intended. 
 
-```{r fig.width=10, fig.height=7}
+```{r fig.width=6, fig.height=5}
 plotGeneQC(spe, ordannots = "regions", col = regions, point_size = 2)
 ```
+
+
+```{r fig.width=10, fig.height=7}
+data("dkd_spe_subset")
+dkd_spe_subset <- addPerROIQC(dkd_spe_subset)
+plotGeneQC(dkd_spe_subset)
+```
+
 
 
 
@@ -317,29 +307,33 @@ After checking the genes, we can now look at the ROI level data.
 Using the `plotROIQC` function, we can visualise QC statistics at the ROI level. 
 By default, the library size and cell count (AOINucleiCount) will be computed.
 
-In the ROI level QC, we first aim to identify (if any) ROI(s) that have relatively low library size and low cell count because they are considered as low quality samples due to insufficient sequencing depth or the lack of RNA in the selected region. Frequency histograms are also provided for both library size and nuclei count to assist with assessing any abnormal distributions of samples in the data.
+In the ROI level QC, we first aim to identify (if any) ROI(s) that have relatively low library size and/or low cell count because they are considered as low quality samples due to insufficient sequencing depth or the lack of RNA in the selected region. Frequency histograms are also provided for both library size and nuclei count to assist with assessing any abnormal distributions of samples in the data.
 
 In this case, we assess the distribution plot for library size against the nuclei count. Looking at the scatter plot, we expect the library sizes to be mostly positively correlated with the cell count (i.e. nuclei count). It is not unexpected for there to be some ROIs having relatively low library size and having a reasonable number of cells (nuclei count). In this dataset, we see this library size vs cell count relationship is relatively smooth with no aberrations observed (e.g. spikes at the lower ranges)
 
-To remove/filter low quality samples, we define a filtering threshold near the lower end of the library size range, in this case at 50,000. By stratifying (color) the points based on their slide names, we notice that the ROIs below the threshold are all from slide *disease1B* (pale orange). This might suggest potential of some technical errors associated with slide *disease1B*.
+To remove/filter low quality samples, we define a filtering threshold near the lower end of the cell count range, in this case at 150 cells. We can also investigate if the bad quality tissue ROIs are all from one or two specific slide experiments by stratifying (color) the points based on their slide names.
 
 ```{r}
-plotROIQC(spe, y_threshold = 50000, color = SlideName)
+plotROIQC(spe, x_threshold = 150, color = SlideName)
 ```
 
-In this experiment, based on the above plot, the library size threshold of 50,000 looks to be a reasonable cutoff. As such we subset the spatial experiment object based on the library size using this threshold in `colData`.
+In this experiment, based on the above plot, the cell count threshold of 150 looks to be a reasonable cutoff. As such we subset the spatial experiment object based on the library size using this threshold in `colData`. Here we remove 11 ROIs from the dataset.
+
 
 ```{r}
-qc <- colData(spe)$lib_size > 50000
+qc <- colData(spe)$AOINucleiCount > 150
+
+table(qc)
 spe <- spe[, qc]
 ```
 
-**Note: The same workflow and logic can also be applied to the nuclei count. We will also check the gene detection rate to assess the quality of the dataset.**
 
-The function `plotROIQC` is looking at nuclei count and library size of each ROI by default. User can change the x or y axis to any other statics they want to QC by specifying the parameter `x_axis` or `y_axis`. For example, the statistics limit of quantification (LOQ) is summarised by the Nanostring process pipeline and it's provided in most/all of the GeoMx DSP dataset. This metrics is calculated based on the distribution of the negative probes, and it's suggested by Nanostring that LOQ can be useful when there are large segments (i.e. big ROI or high cell count samples), and a minimum LOQ of 2 is recommended.
+**Note: The same workflow and logic can also be applied to the library size. **
+
+The function `plotROIQC` is looking at nuclei count and library size of each ROI by default. User can change the x or y axis to any other statics they want to QC by specifying the parameter `x_axis` or `y_axis`. For example, we can plot the area size again library size.
 
 ```{r}
-plotROIQC(spe,  y_axis = "LOQ", y_lab = "LOQ", x_axis = "lib_size", x_lab = "Library size",  y_threshold = 2, col = SlideName)
+plotROIQC(spe,  x_axis = "AOISurfaceArea", x_lab = "AreaSize", y_axis = "lib_size", y_lab = "Library size", col = SlideName)
 ```
 
 
@@ -364,10 +358,10 @@ In this case, we stratify by *slideName* using different colors which clearly sh
 plotRLExpr(spe, ordannots = "SlideName", assay = 2, color = SlideName)
 ```
 
-We can also try out other factors (e.g. regions ) to see how they influence the expression. 
+We can also try out other factors (e.g. Tissue Type) to see how they influence the expression. 
 
 ```{r fig.width=10, fig.height=5}
-plotRLExpr(spe, ordannots = "regions", assay = 2, color = regions)
+plotRLExpr(spe, ordannots = "Type", assay = 2, color = Type)
 ```
 
 ### Dimension reduction
@@ -380,11 +374,11 @@ We can also look at the data by breaking it down into the lower dimensions.
 
 Using the `drawPCA` function, we can perform principal component analysis (PCA) on the data. The PCA can help visualise any potential systemic variations (both biological and technical) in the data and to identify the main factors contributing to the variations.
 
-Here we stratify the points based on slide information (*SlideName* by color) and tissues regions (*regions* using shapes). It is clear that tissue regions/types can be explained on PC1, particularly between *glomerulus* and *tubule*. ROIs group and clusters by the individual slide within each tissue structure. Note that the subtypes in the *tubule* ROIs are are clearly separated along PC2. This is not the case for the different subtypes of glomerulus (which groups together). 
+Here we stratify the points based on sub-tissues types (*Type* using color). It is clear that sub-tissue types can be explained on PC1. But we can also observe a seperation between the same sub-tissue types. 
 
 
 ```{r fig.height=8, fig.width=10}
-drawPCA(spe, assay = 2, col = SlideName, shape = regions)
+drawPCA(spe, assay = 2, color = Type)
 ```
 
 
@@ -400,16 +394,16 @@ pca_results <- reducedDim(spe, "PCA")
 
 
 ```{r fig.height=8, fig.width=10}
-drawPCA(spe, precomputed = pca_results, col = SlideName, shape = regions)
+drawPCA(spe, precomputed = pca_results, col = Type)
 ```
 
 
 
-Diseased tissues and control tissues are mixed (disease slides and normal slides).
+Here we stratify the points based on slide annotations. We can see that the slide annotation explain the separation we observed above, indicating the batch effect introduced by the slide difference in the data.
 
 
 ```{r fig.height=8, fig.width=10}
-drawPCA(spe, precomputed = pca_results, col = disease_status, shape = regions)
+drawPCA(spe, precomputed = pca_results, col = SlideName)
 ```
 
 
@@ -420,12 +414,15 @@ plotScreePCA(spe, precomputed = pca_results)
 ```
 
 ```{r fig.height=12, fig.width=15}
-plotPairPCA(spe, col = disease_status, 
-            shape = regions, precomputed = pca_results, n_dimension = 4)
+plotPairPCA(spe, col = Type, precomputed = pca_results, n_dimension = 4)
+```
+
+```{r fig.height=12, fig.width=15}
+plotPairPCA(spe, col = SlideName, precomputed = pca_results, n_dimension = 4)
 ```
 
 ```{r fig.height=8, fig.width=10}
-plotPCAbiplot(spe, n_loadings = 10, precomputed = pca_results, col = regions)
+plotPCAbiplot(spe, n_loadings = 10, precomputed = pca_results, col = Type)
 ```
 
 
@@ -436,7 +433,7 @@ Another way to visualise the data is to look at the Multidimensional scaling (MD
 The function `plotMDS` provides the means to visualise the data in this way.
 
 ```{r fig.height=8, fig.width=10}
-standR::plotMDS(spe, assay = 2, color = disease_status, shape = regions)
+standR::plotMDS(spe, assay = 2, color = Type)
 ```
 
 
@@ -452,7 +449,9 @@ set.seed(100)
 
 spe <- scater::runUMAP(spe, dimred = "PCA")
 
-plotDR(spe, dimred = "UMAP", col = regions)
+plotDR(spe, dimred = "UMAP", col = Type)
+
+plotDR(spe, dimred = "UMAP", col = SlideName)
 ```
 
 ## Normalization
@@ -486,7 +485,9 @@ spe_tmm <- scater::runPCA(spe_tmm)
 
 pca_results_tmm <- reducedDim(spe_tmm, "PCA")
 
-plotPairPCA(spe_tmm, precomputed = pca_results_tmm, color = disease_status, shape = regions)
+plotPairPCA(spe_tmm, precomputed = pca_results_tmm, color = Type)
+
+plotPairPCA(spe_tmm, precomputed = pca_results_tmm, color = SlideName)
 ```
 
 
@@ -523,31 +524,29 @@ Choosing the optimal k is one of the most important task when performing batch c
 
 So here we run through the paired PCA plots for k between 1 and 5. 
 
-In this case, we create a combined factor of interest *biology* (concatenate *disease_status* and *regions* information) in the object. This factor will be specified in the `factors` parameter of the function.  
+In this case, we create a combined factor of interest *Type* (sub-tissue type annotation) in the object. This factor will be specified in the `factors` parameter of the function.  
 
 
 ```{r fig.width=13, fig.height=11}
-colData(spe)$biology <- paste0(colData(spe)$disease_status, "_", colData(spe)$regions)
-
 
 for(i in seq(5)){
-  spe_ruv <- geomxBatchCorrection(spe, factors = "biology", 
+  spe_ruv <- geomxBatchCorrection(spe, factors = "Type", 
                    NCGs = metadata(spe)$NCGs, k = i)
   
-  print(plotPairPCA(spe_ruv, assay = 2, n_dimension = 4, color = disease_status, shape = regions, title = paste0("k = ", i)))
+  print(plotPairPCA(spe_ruv, assay = 2, n_dimension = 4, color = Type, title = paste0("k = ", i)))
   
 }
 
 
 ```
 
-After assessing the generated PCA plots, we choose k = 4 to be our best k.
+After assessing the generated PCA plots, we choose k = 2 to be our best k.
 From the resulting PCA, we can see that the disease status are reasonable separated within each region type.
 
 
 ```{r fig.width=13, fig.height=11}
-spe_ruv <- geomxBatchCorrection(spe, factors = "biology", 
-                   NCGs = metadata(spe)$NCGs, k = 4)
+spe_ruv <- geomxBatchCorrection(spe, factors = "Type", 
+                   NCGs = metadata(spe)$NCGs, k = 2)
 
 set.seed(100)
 
@@ -555,12 +554,12 @@ spe_ruv <- scater::runPCA(spe_ruv)
 
 pca_results_ruv <- reducedDim(spe_ruv, "PCA")
 
-plotPairPCA(spe_ruv, precomputed = pca_results_ruv, color = disease_status, shape = regions, title = "RUV4, k = 4", n_dimension = 4)
+plotPairPCA(spe_ruv, precomputed = pca_results_ruv, color = Type, title = "RUV4, k = 2", n_dimension = 4)
 ```
 
 
 ```{r fig.width=10, fig.height=9}
-plotPairPCA(spe_ruv, precomputed = pca_results_ruv, color = SlideName, title = "RUV4, k = 4", n_dimension = 4)
+plotPairPCA(spe_ruv, precomputed = pca_results_ruv, color = SlideName, title = "RUV4, k = 2", n_dimension = 4)
 ```
 
 
@@ -582,8 +581,7 @@ In this case, the batch effect is based on the slides (SlideName) and factors of
 
 spe_lrb <- geomxBatchCorrection(spe,
                        batch = colData(spe)$SlideName, method = "Limma",
-                       design = model.matrix(~disease_status + regions, 
-                                             data = colData(spe))[,-1])
+                       design = model.matrix(~Type, data = colData(spe))[,-1])
 ```
 
 
@@ -592,10 +590,11 @@ Once again, we use the respective QC plots like PCA to inspect and assess the ef
 In this instance, using `limma::removeBatchEffect` approach seems to be over-corrected since we specifying the `batch` parameter as slide, however slide is confounded with the biology of interest.  
 
 
-```{r fig.width=13, fig.height=11}
-plotPairPCA(spe_lrb, assay = 2, color = disease_status, shape = regions, title = "Limma removeBatch", n_dimension = 4)
-```
+```{r}
+plotPairPCA(spe_lrb, assay = 2, color = Type, title = "Limma removeBatch")
 
+plotPairPCA(spe_lrb, assay = 2, color = SlideName, title = "Limma removeBatch")
+```
 
 
 
@@ -610,19 +609,19 @@ The typical approach to interrogating the effectiveness of batch correction proc
   * Silhouette coefficient.  
   * Chi-squared coefficient.
   * Mirkin distance.  
-  * Simple matching coefficient.  
+  * Overlap Coefficient 
 
 This assessment can be conducted by using the `plotClusterEvalStats` function provided in `standR`. 
 
 Here we present the output for the summarised statistics for the two normalization methods in this workshop (i.e. RUV4 and Limma ) as well as the uncorrected data. Scores for each method will be presented as a barplot scores of the six summarized statistics (as above) under two sections (*biology* and *batch*). As a general rule, for the *biology* of interest defined in the batch correction process, a higher score is considered a good outcome. On the other hand, for the batch, a smaller score will be the preferred outcome.
 
-We can see from the results that when it comes to stratifying based on biological factors (disease status and tissue regions) or quantifying the amount of clustering due to batch effects for this dataset, `RUV4` outperforms `limma` in most cases. 
+We can see from the results that when it comes to stratifying based on biological factors (sub-tissue types) or quantifying the amount of clustering due to batch effects for this dataset, `RUV4` outperforms `limma` in most cases. 
 
 ```{r fig.width=10, fig.height=7}
 spe_list <- list(spe, spe_ruv, spe_lrb)
 
 plotClusterEvalStats(spe_list = spe_list,
-                     bio_feature_name = "regions",
+                     bio_feature_name = "Type",
                      batch_feature_name = "SlideName",
                      data_names = c("Raw","RUV4","Limma"))
 ```
@@ -647,11 +646,11 @@ Instead, we recommend incorporating the workflow with well established pipelines
 
 In this workshop, we'll demonstrate the DE analysis using the `limma-voom` pipeline.
 
-We've shown in previous sections that for this dataset, using RUV4 with `k = 4` is the appropriate batch correction approach and is able to remove the batch effect and other undesired technical variations. To incorporate this correction into the linear model, we need to include the weight matrix generated from the function `geomxBatchCorrection` as covariates. The weight matrix can be found in the `colData`.
+We've shown in previous sections that for this dataset, using RUV4 with `k = 2` is the appropriate batch correction approach and is able to remove the batch effect and other undesired technical variations. To incorporate this correction into the linear model, we need to include the weight matrix generated from the function `geomxBatchCorrection` as covariates. The weight matrix can be found in the `colData`.
 
 
 ```{r}
-colData(spe_ruv)[,seq(ncol(colData(spe_ruv))-3, ncol(colData(spe_ruv)))] |>
+colData(spe_ruv)[,seq(ncol(colData(spe_ruv))-1, ncol(colData(spe_ruv)))] |>
   head()
 ```
 
@@ -669,32 +668,31 @@ dge <- SE2DGEList(spe_ruv)
 ```
 
 
-In our analysis, it is of interest to see which genes are differential expressed in different tissue regions within different status of the samples, a design matrix is therefore set up with both the disease status (DKD and normal) and tissue regions (glomerulus_healthy, glomerulus_abnormal, tubule_PanCK and tubule_neg) information. We added the W matrices resulted from the `RUV4` to the model matrix as covariates to use batch corrected data.
-
-Recall we have created the factor `biology` earlier in the workshop. This factor is an interacting factor of interest between disease status and tissue regions. As such, we directly use this factor in the design matrix. 
+In our analysis, it is of interest to see which genes are differential expressed in different tissue regions of the samples, a design matrix is therefore set up with sub-tissue types information. We added the W matrices resulted from the `RUV4` to the model matrix as covariates to use batch corrected data.
 
 
 ```{r}
-design <- model.matrix(~0 + biology + ruv_W1 + ruv_W2 + ruv_W3 + ruv_W4, data = colData(spe_ruv))
+design <- model.matrix(~0 + Type + ruv_W1 + ruv_W2 , data = colData(spe_ruv))
 
 colnames(design)
 ```
 
-To simplify the factor name, here we edit the column name of the design matrix by removing the prefix "biology".
+To simplify the factor name, here we edit the column name of the design matrix by removing the prefix "Type" and replacing spaces with underscores.
 
 ```{r}
-colnames(design) <- gsub("^biology","",colnames(design))
+colnames(design) <- gsub("^Type","",colnames(design))
+colnames(design) <- gsub(" ","_",colnames(design))
   
 colnames(design)
 
 ```
 
-In this analysis, we will be looking at comparison between glomerulus_abnormal and tubule_neg in DKD patient. The contrast for pairwise comparisons between different groups are set up in using the `makeContrasts` function from `Limma`.
+In this analysis, we will be looking at comparison between B cell zone and T cell zone. The contrast for pairwise comparisons between different groups are set up in using the `makeContrasts` function from `Limma`.
 
 
 ```{r}
 contr.matrix <- makeContrasts(
-   DvCinGab = DKD_glomerulus_abnormal - DKD_tubule_neg,
+   BvT = B_cell_zone - T_cell_zone,
    levels = colnames(design))
 ```
 
@@ -709,6 +707,8 @@ Here we can see that 17 genes are filtered.
 
 ```{r}
 table(keep)
+
+rownames(dge)[!keep]
 
 dge_all <- dge[keep, ]
 ```
@@ -731,20 +731,18 @@ fit_contrast <- contrasts.fit(fit, contrasts = contr.matrix)
 
 efit <- eBayes(fit_contrast, robust = TRUE)
 
-tfit <- treat(fit_contrast)
-
 ```
 
 
 We can see that in the comparison between glomerulus_abnormal and tubule_neg in DKD patient, we found 472 up-regulated and 365 down-regulated DE genes with fold-change above 1.2 (by default).
 
-
 ```{r}
-results_efit<- decideTests(tfit, p.value = 0.05)
+results_efit<- decideTests(efit, p.value = 0.05)
 summary_efit <- summary(results_efit)
 
 summary_efit
 ```
+
 
 
 ### Visualisation
@@ -755,28 +753,28 @@ We can obtain the DE results by using the `TopTable` function.
 library(ggrepel)
 library(tidyverse)
 
-de_results_DvCinGab <- topTable(efit, coef = 1, sort.by = "P", n = Inf)
+de_results_BvT <- topTable(efit, coef = 1, sort.by = "P", n = Inf)
 
-de_genes_toptable_DvCinGab <- topTable(efit, coef = 1, sort.by = "P", n = Inf, p.value = 0.05)
+de_genes_toptable_BvT <- topTable(efit, coef = 1, sort.by = "P", n = Inf, p.value = 0.05)
 
 ```
 
 We can then visualise the DE genes with MA plot.
 
 ```{r fig.width=10, fig.height=9}
-de_results_DvCinGab %>% 
+de_results_BvT %>% 
   mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
   ggplot(aes(AveExpr, logFC, col = DE)) + 
   geom_point(shape = 1, size = 1) + 
-  geom_text_repel(data = de_genes_toptable_DvCinGab %>% 
+  geom_text_repel(data = de_genes_toptable_BvT %>% 
                     mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
                     rownames_to_column(), aes(label = rowname)) +
   theme_bw() +
   xlab("Average log-expression") +
   ylab("Log-fold-change") +
-  ggtitle("Abnormal glomerulus vs. Tubule neg in DKD patients (limma-voom-treat)") +
+  ggtitle("B cell zone vs. T cell zone in Lymph node (limma-voom)") +
   scale_color_manual(values = c("blue","gray","red")) +
   theme(text = element_text(size=15))
 
@@ -786,19 +784,19 @@ de_results_DvCinGab %>%
 Or Volcano plot.
 
 ```{r fig.width=10, fig.height=11}
-de_results_DvCinGab %>% 
+de_results_BvT %>% 
   mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
   ggplot(aes(logFC, -log10(adj.P.Val), col = DE)) + 
   geom_point(shape = 1, size = 1) + 
-  geom_text(data = de_genes_toptable_DvCinGab %>% 
+  geom_text(data = de_genes_toptable_BvT %>% 
                     mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
                        ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
                     rownames_to_column(), aes(label = rowname)) +
   theme_bw() +
   xlab("Fold change (log2)") +
   ylab("-log10(p-value)") +
-  ggtitle("Abnormal glomerulus vs. Tubule neg in DKD patients (limma-voom-treat)") +
+  ggtitle("B cell zone vs. T cell zone in Lymph node (limma-voom)") +
   scale_color_manual(values = c("blue","gray","red")) +
   theme(text = element_text(size=15))
 
@@ -811,9 +809,9 @@ library(DT)
 
 updn_cols <- c(RColorBrewer::brewer.pal(6, 'Greens')[2], RColorBrewer::brewer.pal(6, 'Purples')[2])
 
-de_genes_toptable_DvCinGab %>% 
+de_genes_toptable_BvT %>% 
   dplyr::select(c("logFC", "AveExpr", "P.Value", "adj.P.Val")) %>%
-  DT::datatable(caption = 'Abnormal glomerulus vs. Tubule neg in DKD patients (limma-voom-treat)') %>%
+  DT::datatable(caption = 'B cell zone vs. T cell zone in Lymph node (limma-voom)') %>%
   DT::formatStyle('logFC',
                 valueColumns = 'logFC',
                 backgroundColor = DT::styleInterval(0, rev(updn_cols))) %>%
@@ -903,20 +901,33 @@ fry_res_sig <- post_fry_format(fry_res_out, gsc_category, gsc_subcategory) %>%
 ```
 
 
-The output is a `data.frame` object. We can either output the whole table, or inspect the top 20 gene sets in a bar plot.
+The output is a `data.frame` object. We can either output the whole table, or inspect the top N gene sets in a bar plot.
 
-We can see glomerular-related gene sets such as *glomerular_basement_membrane_development* and *glomerular_epithelial_cell_differentiation* are significantly enriched in up-regulated genes in abnormal glomerulus compared to tubule neg. Diabetic-related pathways are also found to be enriched.
+We can see many immune-related gene sets are significantly enriched, B cell-related gene-sets are enriched in up-regulated genes while T-cell related gene-sets are enriched in down-regulated genes.
 
 
 ```{r}
 fry_res_sig %>%
   arrange(FDR) %>%
+  filter(Direction == "Up") %>%
   .[seq(20),] %>%
   mutate(GenesetName = factor(GenesetName, levels = .$GenesetName)) %>%
-  ggplot(aes(GenesetName, -log(FDR), fill = Direction)) +
-  geom_bar(stat = "identity") +
+  ggplot(aes(GenesetName, -log(FDR))) +
+  geom_bar(stat = "identity", fill = "red") +
   theme_bw() +
-  coord_flip()
+  coord_flip() +
+  ggtitle("Up-regulated")
+
+fry_res_sig %>%
+  arrange(FDR) %>%
+  filter(Direction == "Down") %>%
+  .[seq(20),] %>%
+  mutate(GenesetName = factor(GenesetName, levels = .$GenesetName)) %>%
+  ggplot(aes(GenesetName, -log(FDR))) +
+  geom_bar(stat = "identity", fill = "blue") +
+  theme_bw() +
+  coord_flip() +
+  ggtitle("Down-regulated")
 ```
 
 
@@ -1004,7 +1015,7 @@ Combined, these three plots enable users to identify higher-order biological pro
 
 
 ```{r fig.width=15, fig.height=7}
-dovissE(fry_res_sig, de_genes_toptable_DvCinGab, topN = 9, title = "Abnormal glomerulus vs. Tubule neg in DKD patients" )
+dovissE(fry_res_sig, de_genes_toptable_BvT, topN = 9, title = "Abnormal glomerulus vs. Tubule neg in DKD patients" )
 ```
 
 
