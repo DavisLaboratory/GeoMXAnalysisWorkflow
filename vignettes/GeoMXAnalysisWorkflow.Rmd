@@ -55,6 +55,7 @@ library(tidyverse)
 library(vissE)
 library(GSEABase)
 library(msigdb)
+library(ggalluvial)
 library(ExperimentHub)
 
 #automatically create a bib database for R packages
@@ -260,6 +261,7 @@ In this dataset, the following key features are of interest for which we would l
 
 ```{r}
 library(ggplot2)
+library(ggalluvial)
 
 plotSampleInfo(spe, column2plot = c("SlideName","Type"))
 ```
