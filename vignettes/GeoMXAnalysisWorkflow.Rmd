@@ -648,7 +648,7 @@ Instead, we recommend incorporating the workflow with well established pipelines
 
 In this workshop, we'll demonstrate the DE analysis using the `limma-voom` pipeline.
 
-We've shown in previous sections that for this dataset, using RUV4 with `k = 2` is the appropriate batch correction approach and is able to remove the batch effect and other undesired technical variations. To incorporate this correction into the linear model, we need to include the weight matrix generated from the function `geomxBatchCorrection` as covariates. The weight matrix can be found in the `colData`.
+We've shown in previous sections that for this dataset, using RUV4 with `k = 2` is the appropriate batch correction approach and is able to remove the batch effect and other undesired technical variations. However, **normalised count are not intended to be used in linear modelling. For linear modelling**, it is better to include the weight matrix generated from the function `geomxBatchCorrection` as covariates. The weight matrix can be found in the `colData`.
 
 
 ```{r}
@@ -783,26 +783,6 @@ de_results_BvT %>%
 ```
 
 
-Or Volcano plot.
-
-```{r fig.width=10, fig.height=11}
-de_results_BvT %>% 
-  mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
-                       ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
-  ggplot(aes(logFC, -log10(adj.P.Val), col = DE)) + 
-  geom_point(shape = 1, size = 1) + 
-  geom_text(data = de_genes_toptable_BvT %>% 
-                    mutate(DE = ifelse(logFC > 0 & adj.P.Val <0.05, "UP", 
-                       ifelse(logFC <0 & adj.P.Val<0.05, "DOWN", "NOT DE"))) %>%
-                    rownames_to_column(), aes(label = rowname)) +
-  theme_bw() +
-  xlab("Fold change (log2)") +
-  ylab("-log10(p-value)") +
-  ggtitle("B cell zone vs. T cell zone in Lymph node (limma-voom)") +
-  scale_color_manual(values = c("blue","gray","red")) +
-  theme(text = element_text(size=15))
-
-```
 
 Or we can make a interactive table using the `DT` package.
 
@@ -908,7 +888,7 @@ The output is a `data.frame` object. We can either output the whole table, or in
 We can see many immune-related gene sets are significantly enriched, B cell-related gene-sets are enriched in up-regulated genes while T-cell related gene-sets are enriched in down-regulated genes.
 
 
-```{r}
+```{r fig.width=15}
 fry_res_sig %>%
   arrange(FDR) %>%
   filter(Direction == "Up") %>%
