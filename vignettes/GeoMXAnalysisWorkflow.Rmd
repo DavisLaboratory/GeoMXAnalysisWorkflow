@@ -670,7 +670,7 @@ dge <- SE2DGEList(spe_ruv)
 ```
 
 
-In our analysis, it is of interest to see which genes are differential expressed in different tissue regions of the samples, a design matrix is therefore set up with sub-tissue types information. We added the W matrices resulted from the `RUV4` to the model matrix as covariates to use batch corrected data.
+In our analysis, it is of interest to see which genes are differential expressed in different tissue regions of the samples, a design matrix is therefore set up with sub-tissue types information. We added the W matrices resulted from the `RUV4` to the model matrix as covariates to use batch corrected data. For more information about how to desgin your design matrix, see the [limma user guide](https://www.bioconductor.org/packages/devel/bioc/vignettes/limma/inst/doc/usersguide.pdf) or this [F1000 paper of design matrix](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/).
 
 
 ```{r}
@@ -756,7 +756,7 @@ text(highbcv_df$AveLogCPM, highbcv_df$BCV, labels = highbcv_df$gene_id, pos = 4)
 
 ## Differential expression
 
-In the `limma-voom` pipeline, linear modelling is carried out on the log-CPM values by using the `voom`, `lmFit`, `contrasts.fit` and `eBayes` functions. In specific cases where users like to take more considerations of the log fold changes in the statistical analysis, the `treat` function is applied. 
+In the `limma-voom` pipeline, linear modelling is carried out on the log-CPM values by using the `voom`, `lmFit`, `contrasts.fit` and `eBayes` functions. In specific cases where users like to take more considerations of the log fold changes in the statistical analysis, the `treat` function is applied. The `treat` function, t-tests relative to a threshold, allows testing formally the hypothesis (with associated p-values) that the differential expression is greater than a given threshold, fold-change in this case. But be aware of avoiding using `eBayes` and `treat` for different contrasts for the same analysis.
 
 **Notes: If there are samples from a mixture of patients where subsets of which will have come from each patient (individual), the intra-and-inter patient correlations will need to be accounted for in the modelling. To do this, it is recommended to use the `duplicateCorrelation` function twice, followed by passing the resulting correlation to the `lmFit` function.**
 
