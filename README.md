@@ -62,7 +62,7 @@ The following key R packages will be used:
 ### Guide
 
 This is necessary in order to reproduce the code shown in the workshop. 
-The workshop is designed for R `4.2+` and Bioconductor `3.15`, and it can be installed via GitHub with the following command.
+The workshop is designed for R `4.2+` and Bioconductor `3.15+`, and it can be installed via GitHub with the following command.
 
 To download R go to https://cloud.r-project.org/ then choose the binary to install.
 **Note: Apple machine with M1 process would need to download the intel version of R as well.**
@@ -72,7 +72,7 @@ Bioconductor can be installed by the following codes if you haven't installed:
 ```
 install.packages("BiocManager")
 
-BiocManager::install(version = "3.15")
+BiocManager::install()
 ```
 
 To install this workflow package:

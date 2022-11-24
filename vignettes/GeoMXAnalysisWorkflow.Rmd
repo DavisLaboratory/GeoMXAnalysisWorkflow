@@ -30,7 +30,7 @@ nocite: |
   @R-ggplot2, @R-knitr, @R-BiocWorkflowTools, @R-rmarkdown, @R-prettydoc
 bibliography: [packages.bib]
 vignette: >
-  %\VignetteIndexEntry{Analysing Nanostring's GeoMx transcriptomics data using standR, limma and vissE.}
+  %\VignetteIndexEntry{Analysing Nanostring's GeoMx transcriptomics data using standR and limma}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 keywords: DifferentialExpression, Normalization, QualityControl, Spatial, Transcriptomics
@@ -698,14 +698,14 @@ contr.matrix <- makeContrasts(
    levels = colnames(design))
 ```
 
-It is recommended to filter out genes with low coverage in the dataset to allow a more accurate mean-variance relationship and reduce the number of statistical tests. Here we use the `filterByExpr` function from the `edgeR` package to filter genes based on the model matrix, keeping as many genes as possible with resonable counts.
+It is recommended to filter out genes with low coverage in the dataset to allow a more accurate mean-variance relationship and reduce the number of statistical tests. Here we use the `filterByExpr` function from the `edgeR` package to filter genes based on the model matrix, keeping as many genes as possible with reasonable counts.
 
 
 ```{r}
 keep <- filterByExpr(dge, design)
 ```
 
-Here we can see that 17 genes are filtered.
+Here we can see that 1 gene is filtered.
 
 ```{r}
 table(keep)
@@ -716,16 +716,53 @@ dge_all <- dge[keep, ]
 ```
 
 
+### BCV check
+
+```{r}
+dge_all <- estimateDisp(dge_all, design = design, robust = TRUE)
+```
+
+Biological CV (BCV) is the coefficient of variation with which the (unknown) true abundance of the gene varies between replicate RNA samples.
+For more detail about dispersion and BCV calculation, see the [edgeR user guide](https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf).
+
+There are three main features we need to look at in the BCV plot of a GeoMx dataset:
+
+1. Dispersion trend: the dispersion trend is expected to become flat in genes with larger count.
+
+2. Common trend: should be relatively small. In RNA-seq data, a common trend between 0.2 and 0.4 is expected in human sample, 0.05 - 0.2 is expected in mice and cell lines. In the GeoMx experiments, since we're sampling segments from human tissues, we expected it to be smaller than the RNA-seq human samples.
+
+3. Genes with low count: be very careful if you see a strips of genes show up with high BCV and low count.
+
+4. genes with high BCV: should also be careful about the genes with high BCV as well, very likely they will be identified as DE genes and driving the variation we saw in the PCA plots. So it is alway good practice to check the high BCV genes, consulting with the biologists to make sure that they expected to be highly variable.
+
+
+```{r}
+plotBCV(dge_all, legend.position = "topleft", ylim = c(0, 1.3))
+bcv_df <- data.frame(
+  'BCV' = sqrt(dge_all$tagwise.dispersion),
+  'AveLogCPM' = dge_all$AveLogCPM,
+  'gene_id' = rownames(dge_all)
+)
+
+highbcv <- bcv_df$BCV > 0.8
+highbcv_df <- bcv_df[highbcv, ]
+points(highbcv_df$AveLogCPM, highbcv_df$BCV, col = "red")
+text(highbcv_df$AveLogCPM, highbcv_df$BCV, labels = highbcv_df$gene_id, pos = 4)
+```
+
+
+
+
 
 ## Differential expression
 
 In the `limma-voom` pipeline, linear modelling is carried out on the log-CPM values by using the `voom`, `lmFit`, `contrasts.fit` and `eBayes` functions. In specific cases where users like to take more considerations of the log fold changes in the statistical analysis, the `treat` function is applied. 
 
-**Notes: If there are samples from a mixture of patients where subsets of which will have come from each patient (individual), the intra-and-inter patient correlations will need to be accounted for in the modelling. To do this, it is recommended to use the `duplicateCorrelation` function, followed by passing the resulting correlation to the `lmFit` function.**
+**Notes: If there are samples from a mixture of patients where subsets of which will have come from each patient (individual), the intra-and-inter patient correlations will need to be accounted for in the modelling. To do this, it is recommended to use the `duplicateCorrelation` function twice, followed by passing the resulting correlation to the `lmFit` function.**
 
 
 ```{r}
-v <- voom(dge_all, design) 
+v <- voom(dge_all, design, plot = TRUE) 
 
 fit <- lmFit(v)
 
