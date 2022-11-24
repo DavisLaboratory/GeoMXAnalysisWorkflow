@@ -1060,10 +1060,10 @@ dataset to allow a more accurate mean-variance relationship and reduce
 the number of statistical tests. Here we use the
 <code>filterByExpr</code> function from the <code>edgeR</code> package
 to filter genes based on the model matrix, keeping as many genes as
-possible with resonable counts.</p>
+possible with reasonable counts.</p>
 <div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">keep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/filterByExpr.html" class="external-link">filterByExpr</a></span><span class="op">(</span><span class="va">dge</span>, <span class="va">design</span><span class="op">)</span></span></code></pre></div>
-<p>Here we can see that 17 genes are filtered.</p>
+<p>Here we can see that 1 gene is filtered.</p>
 <div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">keep</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## keep</span></span>
@@ -1074,6 +1074,48 @@ possible with resonable counts.</p>
 <pre><code><span><span class="co">## [1] "ST6GALNAC1"</span></span></code></pre>
 <div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dge_all</span> <span class="op">&lt;-</span> <span class="va">dge</span><span class="op">[</span><span class="va">keep</span>, <span class="op">]</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="bcv-check">BCV check<a class="anchor" aria-label="anchor" href="#bcv-check"></a>
+</h4>
+<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dge_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/estimateDisp.html" class="external-link">estimateDisp</a></span><span class="op">(</span><span class="va">dge_all</span>, design <span class="op">=</span> <span class="va">design</span>, robust <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Biological CV (BCV) is the coefficient of variation with which the
+(unknown) true abundance of the gene varies between replicate RNA
+samples. For more detail about dispersion and BCV calculation, see the
+<a href="https://www.bioconductor.org/packages/devel/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf" class="external-link">edgeR
+user guide</a>.</p>
+<p>There are three main features we need to look at in the BCV plot of a
+GeoMx dataset:</p>
+<ol style="list-style-type: decimal">
+<li><p>Dispersion trend: the dispersion trend is expected to become flat
+in genes with larger count.</p></li>
+<li><p>Common trend: should be relatively small. In RNA-seq data, a
+common trend between 0.2 and 0.4 is expected in human sample, 0.05 - 0.2
+is expected in mice and cell lines. In the GeoMx experiments, since
+we’re sampling segments from human tissues, we expected it to be smaller
+than the RNA-seq human samples.</p></li>
+<li><p>Genes with low count: be very careful if you see a strips of
+genes show up with high BCV and low count.</p></li>
+<li><p>genes with high BCV: should also be careful about the genes with
+high BCV as well, very likely they will be identified as DE genes and
+driving the variation we saw in the PCA plots. So it is alway good
+practice to check the high BCV genes, consulting with the biologists to
+make sure that they expected to be highly variable.</p></li>
+</ol>
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/edgeR/man/plotBCV.html" class="external-link">plotBCV</a></span><span class="op">(</span><span class="va">dge_all</span>, legend.position <span class="op">=</span> <span class="st">"topleft"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">bcv_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  <span class="st">'BCV'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">dge_all</span><span class="op">$</span><span class="va">tagwise.dispersion</span><span class="op">)</span>,</span>
+<span>  <span class="st">'AveLogCPM'</span> <span class="op">=</span> <span class="va">dge_all</span><span class="op">$</span><span class="va">AveLogCPM</span>,</span>
+<span>  <span class="st">'gene_id'</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">dge_all</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">highbcv</span> <span class="op">&lt;-</span> <span class="va">bcv_df</span><span class="op">$</span><span class="va">BCV</span> <span class="op">&gt;</span> <span class="fl">0.8</span></span>
+<span><span class="va">highbcv_df</span> <span class="op">&lt;-</span> <span class="va">bcv_df</span><span class="op">[</span><span class="va">highbcv</span>, <span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">highbcv_df</span><span class="op">$</span><span class="va">AveLogCPM</span>, <span class="va">highbcv_df</span><span class="op">$</span><span class="va">BCV</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/text.html" class="external-link">text</a></span><span class="op">(</span><span class="va">highbcv_df</span><span class="op">$</span><span class="va">AveLogCPM</span>, <span class="va">highbcv_df</span><span class="op">$</span><span class="va">BCV</span>, labels <span class="op">=</span> <span class="va">highbcv_df</span><span class="op">$</span><span class="va">gene_id</span>, pos <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-57-1.png" width="700"></p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="differential-expression">Differential expression<a class="anchor" aria-label="anchor" href="#differential-expression"></a>
@@ -1088,12 +1130,14 @@ considerations of the log fold changes in the statistical analysis, the
 subsets of which will have come from each patient (individual), the
 intra-and-inter patient correlations will need to be accounted for in
 the modelling. To do this, it is recommended to use the
-<code>duplicateCorrelation</code> function, followed by passing the
-resulting correlation to the <code>lmFit</code> function.</strong></p>
-<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/voom.html" class="external-link">voom</a></span><span class="op">(</span><span class="va">dge_all</span>, <span class="va">design</span><span class="op">)</span> </span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/lmFit.html" class="external-link">lmFit</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span></span>
+<code>duplicateCorrelation</code> function twice, followed by passing
+the resulting correlation to the <code>lmFit</code>
+function.</strong></p>
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">v</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/voom.html" class="external-link">voom</a></span><span class="op">(</span><span class="va">dge_all</span>, <span class="va">design</span>, plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> </span></code></pre></div>
+<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-58-1.png" width="700"></p>
+<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/lmFit.html" class="external-link">lmFit</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit_contrast</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/contrasts.fit.html" class="external-link">contrasts.fit</a></span><span class="op">(</span><span class="va">fit</span>, contrasts <span class="op">=</span> <span class="va">contr.matrix</span><span class="op">)</span></span>
 <span></span>
@@ -1101,7 +1145,7 @@ resulting correlation to the <code>lmFit</code> function.</strong></p>
 <p>We can see that in the comparison between glomerulus_abnormal and
 tubule_neg in DKD patient, we found 472 up-regulated and 365
 down-regulated DE genes with fold-change above 1.2 (by default).</p>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">results_efit</span><span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/decideTests.html" class="external-link">decideTests</a></span><span class="op">(</span><span class="va">efit</span>, p.value <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
 <span><span class="va">summary_efit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">results_efit</span><span class="op">)</span></span>
 <span></span>
@@ -1115,7 +1159,7 @@ down-regulated DE genes with fold-change above 1.2 (by default).</p>
 </h4>
 <p>We can obtain the DE results by using the <code>TopTable</code>
 function.</p>
-<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/slowkow/ggrepel" class="external-link">ggrepel</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
 <span></span>
@@ -1123,7 +1167,7 @@ function.</p>
 <span></span>
 <span><span class="va">de_genes_toptable_BvT</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/toptable.html" class="external-link">topTable</a></span><span class="op">(</span><span class="va">efit</span>, coef <span class="op">=</span> <span class="fl">1</span>, sort.by <span class="op">=</span> <span class="st">"P"</span>, n <span class="op">=</span> <span class="cn">Inf</span>, p.value <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
 <p>We can then visualise the DE genes with MA plot.</p>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">de_results_BvT</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>DE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">logFC</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">adj.P.Val</span> <span class="op">&lt;</span><span class="fl">0.05</span>, <span class="st">"UP"</span>, </span>
 <span>                       <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">logFC</span> <span class="op">&lt;</span><span class="fl">0</span> <span class="op">&amp;</span> <span class="va">adj.P.Val</span><span class="op">&lt;</span><span class="fl">0.05</span>, <span class="st">"DOWN"</span>, <span class="st">"NOT DE"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1139,10 +1183,10 @@ function.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"B cell zone vs. T cell zone in Lymph node (limma-voom)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"blue"</span>,<span class="st">"gray"</span>,<span class="st">"red"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">15</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-59-1.png" width="960"></p>
+<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-61-1.png" width="960"></p>
 <p>Or we can make a interactive table using the <code>DT</code>
 package.</p>
-<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/rstudio/DT" class="external-link">DT</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">updn_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu">RColorBrewer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">6</span>, <span class="st">'Greens'</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="fu">RColorBrewer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">6</span>, <span class="st">'Purples'</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
@@ -1189,7 +1233,7 @@ experiments</li>
 <p>We load the gene sets using the <code>msigdb</code> package, and
 extact only the gene sets we described above. This might take a few
 minutes to run.</p>
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://davislaboratory.github.io/msigdb" class="external-link">msigdb</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">GSEABase</span><span class="op">)</span></span>
 <span></span>
@@ -1209,7 +1253,7 @@ minutes to run.</p>
 <p>Preprocessing is conducted on these genesets, filtering out genesets
 with less than 5 genes and creating indices vector list for formatting
 on the results before applying <code>fry</code>.</p>
-<div class="sourceCode" id="cb92"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fry_indices</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/limma/man/ids2indices.html" class="external-link">ids2indices</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">gsc</span>, <span class="va">geneIds</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">v</span><span class="op">)</span>, remove.empty <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">fry_indices</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">gsc</span>, <span class="va">setName</span><span class="op">)</span></span>
 <span></span>
@@ -1223,7 +1267,7 @@ on the results before applying <code>fry</code>.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">gsc_category</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">gsc_subcategory</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">fry_indices</span><span class="op">)</span></span></code></pre></div>
 <p>Now we run <code>fry</code> with all the gene sets we filtered.</p>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fry_indices_cat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">fry_indices</span>, <span class="va">gsc_category</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">fry_indices</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">fry_res_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">fry_indices_cat</span>, <span class="kw">function</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">limma</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/limma/man/roast.html" class="external-link">fry</a></span><span class="op">(</span><span class="va">v</span>, index <span class="op">=</span> <span class="va">x</span>, design <span class="op">=</span> <span class="va">design</span>, contrast <span class="op">=</span> <span class="va">contr.matrix</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, robust <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -1246,7 +1290,7 @@ the whole table, or inspect the top N gene sets in a bar plot.</p>
 <p>We can see many immune-related gene sets are significantly enriched,
 B cell-related gene-sets are enriched in up-regulated genes while T-cell
 related gene-sets are enriched in down-regulated genes.</p>
-<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fry_res_sig</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">FDR</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Direction</span> <span class="op">==</span> <span class="st">"Up"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1257,8 +1301,8 @@ related gene-sets are enriched in down-regulated genes.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Up-regulated"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-64-1.png" width="1440"></p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-66-1.png" width="1440"></p>
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fry_res_sig</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">FDR</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Direction</span> <span class="op">==</span> <span class="st">"Down"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1269,7 +1313,7 @@ related gene-sets are enriched in down-regulated genes.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Down-regulated"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-64-2.png" width="1440"></p>
+<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-66-2.png" width="1440"></p>
 </div>
 <div class="section level3">
 <h3 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
@@ -1280,7 +1324,7 @@ common gene sets as a group.</p>
 perform clustering on the enriched gene sets and visualise the gene sets
 using word cloud-based algorithm and network-based visualisation. For
 more information about <code>vissE</code>, check out <a href="https://bioconductor.org/packages/release/bioc/html/vissE.html" class="external-link">here</a>.</p>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://davislaboratory.github.io/vissE" class="external-link">vissE</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://igraph.org" class="external-link">igraph</a></span><span class="op">)</span></span>
 <span><span class="va">dovissE</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">fry_out</span>, <span class="va">de_table</span>, <span class="va">topN</span> <span class="op">=</span> <span class="fl">6</span>, <span class="va">title</span> <span class="op">=</span> <span class="st">""</span>, <span class="va">specific_clusters</span> <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span><span class="op">{</span></span>
@@ -1362,9 +1406,9 @@ the relationships between higher-order processes (network plot), and
 relate the experiment-specific statistics back to the identified
 processes (gene statistic plot), thereby providing an integrated view of
 the data.</p>
-<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">dovissE</span><span class="op">(</span><span class="va">fry_res_sig</span>, <span class="va">de_genes_toptable_BvT</span>, topN <span class="op">=</span> <span class="fl">9</span>, title <span class="op">=</span> <span class="st">"Abnormal glomerulus vs. Tubule neg in DKD patients"</span> <span class="op">)</span></span></code></pre></div>
-<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-66-1.png" width="1440"></p>
+<p><img src="GeoMXAnalysisWorkflow_files/figure-html/unnamed-chunk-68-1.png" width="1440"></p>
 </div>
 </div>
 <div class="section level2">
@@ -1385,7 +1429,7 @@ GeoMx DSP datasets.</p>
 Bioconductor project, running on R Under development (unstable)
 (2022-11-17 r83363) or higher. The complete list of the packages used
 for this workflow are shown below:</p>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## R Under development (unstable) (2022-11-17 r83363)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu (64-bit)</span></span>
@@ -1424,12 +1468,12 @@ for this workflow are shown below:</p>
 <span><span class="co">## [21] tidyr_1.2.1                 tibble_3.1.8               </span></span>
 <span><span class="co">## [23] ggplot2_3.4.0               tidyverse_1.3.2            </span></span>
 <span><span class="co">## [25] edgeR_3.41.0                limma_3.55.0               </span></span>
-<span><span class="co">## [27] SpatialExperiment_1.9.2     SingleCellExperiment_1.21.0</span></span>
+<span><span class="co">## [27] SpatialExperiment_1.9.3     SingleCellExperiment_1.21.0</span></span>
 <span><span class="co">## [29] SummarizedExperiment_1.29.1 Biobase_2.59.0             </span></span>
-<span><span class="co">## [31] GenomicRanges_1.51.1        GenomeInfoDb_1.35.4        </span></span>
+<span><span class="co">## [31] GenomicRanges_1.51.1        GenomeInfoDb_1.35.5        </span></span>
 <span><span class="co">## [33] IRanges_2.33.0              S4Vectors_0.37.0           </span></span>
 <span><span class="co">## [35] BiocGenerics_0.45.0         MatrixGenerics_1.11.0      </span></span>
-<span><span class="co">## [37] matrixStats_0.63.0          standR_1.1.6               </span></span>
+<span><span class="co">## [37] matrixStats_0.63.0          standR_1.3.1               </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
 <span><span class="co">##   [1] fs_1.5.2                      bitops_1.0-7                 </span></span>
@@ -1468,7 +1512,7 @@ for this workflow are shown below:</p>
 <span><span class="co">##  [67] assertthat_0.2.1              cachem_1.0.6                 </span></span>
 <span><span class="co">##  [69] xfun_0.35                     sylly_0.1-6                  </span></span>
 <span><span class="co">##  [71] rbibutils_2.2.10              mime_0.12                    </span></span>
-<span><span class="co">##  [73] DropletUtils_1.19.0           syuzhet_1.0.6                </span></span>
+<span><span class="co">##  [73] DropletUtils_1.19.2           syuzhet_1.0.6                </span></span>
 <span><span class="co">##  [75] tidygraph_1.2.2               gargle_1.2.1                 </span></span>
 <span><span class="co">##  [77] statmod_1.4.37                interactiveDisplayBase_1.37.0</span></span>
 <span><span class="co">##  [79] ellipsis_0.3.2                nlme_3.1-160                 </span></span>
@@ -1492,9 +1536,9 @@ for this workflow are shown below:</p>
 <span><span class="co">## [115] prettydoc_0.4.1               DelayedMatrixStats_1.21.0    </span></span>
 <span><span class="co">## [117] farver_2.1.1                  jquerylib_0.1.4              </span></span>
 <span><span class="co">## [119] jsonlite_1.8.3                qdapRegex_0.7.5              </span></span>
-<span><span class="co">## [121] BiocParallel_1.33.0           R.oo_1.25.0                  </span></span>
+<span><span class="co">## [121] BiocParallel_1.33.5           R.oo_1.25.0                  </span></span>
 <span><span class="co">## [123] BiocSingular_1.15.0           RCurl_1.98-1.9               </span></span>
-<span><span class="co">## [125] magrittr_2.0.3                scuttle_1.9.0                </span></span>
+<span><span class="co">## [125] magrittr_2.0.3                scuttle_1.9.2                </span></span>
 <span><span class="co">## [127] GenomeInfoDbData_1.2.9        textclean_0.9.3              </span></span>
 <span><span class="co">## [129] patchwork_1.1.2               Rhdf5lib_1.21.0              </span></span>
 <span><span class="co">## [131] munsell_0.5.0                 Rcpp_1.0.9                   </span></span>
