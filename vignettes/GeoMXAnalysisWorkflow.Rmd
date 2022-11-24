@@ -105,6 +105,11 @@ The data we are using in this workshop is a published GeoMx whole transcriptome 
 This dataset includes data on **five slides**. The ROI selection strategy employed is a regional based approach focused primarily on 5 distinct structures found in the lymph node, namely: **B cell zone, T cell zone, Germinal center, Medulla and Trabecula**.
 
 
+```{r echo=TRUE, eval=FALSE}
+setwd("~/vignettes/")
+```
+
+
 ```{r}
 library(tidyverse)
 
