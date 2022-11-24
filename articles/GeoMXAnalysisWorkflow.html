@@ -1029,7 +1029,10 @@ function from the <code>edgeR</code> package. For more information about
 differential expressed in different tissue regions of the samples, a
 design matrix is therefore set up with sub-tissue types information. We
 added the W matrices resulted from the <code>RUV4</code> to the model
-matrix as covariates to use batch corrected data.</p>
+matrix as covariates to use batch corrected data. For more information
+about how to desgin your design matrix, see the <a href="https://www.bioconductor.org/packages/devel/bioc/vignettes/limma/inst/doc/usersguide.pdf" class="external-link">limma
+user guide</a> or this <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7873980/" class="external-link">F1000 paper
+of design matrix</a>.</p>
 <div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="op">~</span><span class="fl">0</span> <span class="op">+</span> <span class="va">Type</span> <span class="op">+</span> <span class="va">ruv_W1</span> <span class="op">+</span> <span class="va">ruv_W2</span> , data <span class="op">=</span> <span class="fu">colData</span><span class="op">(</span><span class="va">spe_ruv</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -1125,7 +1128,12 @@ out on the log-CPM values by using the <code>voom</code>,
 <code>lmFit</code>, <code>contrasts.fit</code> and <code>eBayes</code>
 functions. In specific cases where users like to take more
 considerations of the log fold changes in the statistical analysis, the
-<code>treat</code> function is applied.</p>
+<code>treat</code> function is applied. The <code>treat</code> function,
+t-tests relative to a threshold, allows testing formally the hypothesis
+(with associated p-values) that the differential expression is greater
+than a given threshold, fold-change in this case. But be aware of
+avoiding using <code>eBayes</code> and <code>treat</code> for different
+contrasts for the same analysis.</p>
 <p><strong>Notes: If there are samples from a mixture of patients where
 subsets of which will have come from each patient (individual), the
 intra-and-inter patient correlations will need to be accounted for in
