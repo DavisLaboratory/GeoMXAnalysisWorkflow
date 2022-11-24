@@ -1034,7 +1034,7 @@ Combined, these three plots enable users to identify higher-order biological pro
 
 
 ```{r fig.width=15, fig.height=7}
-dovissE(fry_res_sig, de_genes_toptable_BvT, topN = 9, title = "Abnormal glomerulus vs. Tubule neg in DKD patients" )
+dovissE(fry_res_sig, de_genes_toptable_BvT, topN = 9, title = "B cell zone vs. T cell zone in Lymph node." )
 ```
 
 
