@@ -1053,6 +1053,6 @@ sessionInfo()
 
 # Acknowledgments {.unnumbered}
 
-We would like to thank Ahmed Mohamed and Dharmesh Bhuva for their efforts on the Bioconductor submission of the standR package.
+We would like to thank Ahmed Mohamed and Dharmesh Bhuva for their efforts on the Bioconductor submission of the standR package, and would like to thank Jinjin Chen and Malvika Kharbanda for their helps in the standR workshop of the ABACBS 2022 conference.
 
 # References {.unnumbered}
