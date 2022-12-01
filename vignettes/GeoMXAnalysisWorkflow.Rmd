@@ -381,7 +381,7 @@ We can also look at the data by breaking it down into the lower dimensions.
 
 Using the `drawPCA` function, we can perform principal component analysis (PCA) on the data. The PCA can help visualise any potential systemic variations (both biological and technical) in the data and to identify the main factors contributing to the variations.
 
-Here we stratify the points based on sub-tissues types (*Type* using color). It is clear that sub-tissue types can be explained on PC1. But we can also observe a seperation between the same sub-tissue types. 
+Here we stratify the points based on sub-tissues types (*Type* using color). It is clear that sub-tissue types can be explained on PC1. But we can also observe a separation between the same sub-tissue types. 
 
 
 ```{r fig.height=8, fig.width=10}
