@@ -113,7 +113,7 @@ setwd("~/vignettes/")
 ```{r}
 library(tidyverse)
 
-countFile <- read_tsv("../inst/extdata//count.txt") %>% as.data.frame()
+countFile <- read_tsv("../inst/extdata/count.txt") %>% as.data.frame()
 sampleAnnoFile <- read_tsv("../inst/extdata/metadata.txt") %>% as.data.frame()
 featureAnnoFile <- read_tsv("../inst/extdata/genemeta.txt") %>% as.data.frame()
 ```
@@ -1041,6 +1041,149 @@ Combined, these three plots enable users to identify higher-order biological pro
 ```{r fig.width=15, fig.height=7}
 dovissE(fry_res_sig, de_genes_toptable_BvT, topN = 9, title = "B cell zone vs. T cell zone in Lymph node." )
 ```
+
+
+# Cellular deconvolution
+
+Instead of performing DE analysis on the GeoMx data, we can also perform cellular deconvolution analysis.
+
+Cellular deconvolution (or cell type composition or cell proportion estimation) is a technique that estimates the proportions of different cell types in samples collected from a tissue.
+
+In the `standR` package, we can use the `prepareSpatialDecon` function for communicating the `SpatialExperiment` object to the R package `SpatialDecon` to perform cellular deconvolution. However, since `SpatialDecon` requires negative probes to establish background for the data, we need to re-construct the `SpatialExperiment` with parameter `rmNegProbe` set to FALSE to disable the removal of negative probes, then re-run the QC steps.
+
+
+```{r}
+library(SpatialDecon)
+
+spe <- readGeoMx(countFile, sampleAnnoFile, featureAnnoFile, rmNegProbe = FALSE)
+
+spe <- addPerROIQC(spe, rm_genes = TRUE)
+
+qc <- colData(spe)$AOINucleiCount > 150
+
+spe <- spe[, qc]
+
+spe_tmm <- geomxNorm(spe, method = "TMM")
+```
+
+
+
+```{r}
+spd <- prepareSpatialDecon(spe_tmm)
+```
+
+
+The output object from the `prepareSpatialDecon` has two matrix, one is the normalised count (here we used the TMM-normalised count), second is the background model for deconvolution.
+
+```{r}
+names(spd)
+```
+
+Then we can follow the guide from [`SpatialDecon`](https://bioconductor.org/packages/release/bioc/vignettes/SpatialDecon/inst/doc/SpatialDecon_vignette.html) to perform deconvolution.
+
+Here we use the cell type profile from the `SpatialDecon` package. 
+
+The “SafeTME” matrix, designed for estimation of immune and stroma cells in the tumor microenvironment. (This matrix was designed to avoid genes commonly expressed by cancer cells; see the SpatialDecon manuscript for details.)
+
+
+```{r}
+data("safeTME")
+
+heatmap(sweep(safeTME, 1, apply(safeTME, 1, max), "/"),
+        labRow = NA, margins = c(10, 5))
+```
+
+Now we can perform deconvolution using `spatialdecon` function.
+
+```{r}
+res <- spatialdecon(norm = spd$normCount,
+                   bg = spd$backGround,
+                   X = safeTME,
+                   align_genes = TRUE)
+```
+
+
+We can then visualize the outcomes. Because we have too many samples from this datasets, we subset it to focus on tissue fragments from T cell zone and B cell zone.
+
+
+```{r}
+samples_subset <- colnames(spe_tmm)[colData(spe_tmm)$Type %in%  c("T cell zone", "B cell zone")]
+
+subset_prop <- res$prop_of_all[,samples_subset]
+
+spe_sub <- spe_tmm[,samples_subset]
+```
+
+
+
+```{r fig.width=10, fig.height=12}
+subset_prop %>%
+  as.data.frame() %>%
+  rownames_to_column("CellTypes") %>%
+  gather(samples, prop, -CellTypes) %>%
+  ggplot(aes(samples, prop, fill = CellTypes)) +
+  geom_bar(stat = "identity", position = "stack", color = "black", width = .7) +
+  coord_flip() +
+  theme_bw() +
+  theme(legend.position = "bottom")
+```
+
+
+
+
+# Differential proportion analysis
+
+```{r}
+library(speckle)
+
+source("../inst/extdata/convertDataToList.R")
+```
+
+
+```{r}
+propslist <- convertDataToList(subset_prop, 
+                               data.type = c("proportions"),
+                               transform="asin",
+                               scale.fac=colData(spe_sub)$AOINucleiCount)
+```
+
+
+```{r}
+design <- model.matrix(~ 0 + Type + SlideName, data = as.data.frame(colData(spe_sub)))
+
+colnames(design) <- str_remove(colnames(design), pattern = "Type") %>%
+  str_replace_all(., " ", "_")
+
+contr <- makeContrasts(B_cell_zone - T_cell_zone,levels=design)
+
+
+outs <- propeller.ttest(propslist, design, contr, robust=TRUE,trend=FALSE, sort=TRUE)
+```
+
+
+```{r fig.width=10}
+diff_ct <- outs %>% 
+  filter(FDR < 0.05) %>%
+  rownames()
+
+colData(spe_sub)$samples_id <- rownames(colData(spe_sub))
+
+subset_prop[diff_ct,] %>%
+  as.data.frame() %>%
+  rownames_to_column("CellTypes") %>%
+  gather(samples, prop, -CellTypes) %>%
+  left_join(as.data.frame(colData(spe_sub)), by = c("samples"="samples_id")) %>%
+  ggplot(aes(Type, prop, fill = CellTypes)) +
+  geom_violin() +
+  facet_wrap(~CellTypes) +
+  theme_bw() +
+  xlab("") +
+  ylab("Proportion")
+```
+
+
+
+
 
 
 # Summary
