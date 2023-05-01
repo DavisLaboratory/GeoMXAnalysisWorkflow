@@ -8,7 +8,7 @@ env:
 jobs:
   r-build-and-check:
     runs-on: ubuntu-latest
-    container: bioconductor/bioconductor_docker:RELEASE_3_17
+    container: bioconductor/bioconductor_docker:devel
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -41,11 +41,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          options(repos = c(CRAN = "https://cran.r-project.org"))
           BiocManager::repositories()
           remotes::install_deps(dependencies = TRUE, repos = BiocManager::repositories())
           remotes::install_cran("rcmdcheck")
-          #remotes::install_github('DavisLaboratory/standR')
         shell: Rscript {0}
 
       - name: Check
@@ -84,7 +82,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        
+
       - name: Set Environment Variables
         run: |
           REPO_LOWER="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
@@ -93,10 +91,12 @@ jobs:
           echo "GIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_ENV
           echo "REGISTRY=${REGISTRY}" >> $GITHUB_ENV
           echo "IMAGE=${REGISTRY}/${REPO_LOWER}" >> $GITHUB_ENV
-          
+
       - name: Show environment
         run: |
           env
+
+
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign

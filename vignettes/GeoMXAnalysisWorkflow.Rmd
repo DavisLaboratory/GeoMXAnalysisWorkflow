@@ -1115,6 +1115,9 @@ spe_sub <- spe_tmm[,samples_subset]
 ```
 
 
+We can use the bar plot to visualise the proportion distribution of cell types in each sample.
+
+
 
 ```{r fig.width=10, fig.height=12}
 subset_prop %>%
@@ -1133,11 +1136,20 @@ subset_prop %>%
 
 # Differential proportion analysis
 
+
+To perform differential analysis on proportion data, we use the `propeller` tool from the `speckle` package.
+
+Propeller is a robust and flexible linear modelling-based solution to test for differences in cell type proportions between experimental conditions, more information please see the  [propeller paper](https://academic.oup.com/bioinformatics/article/38/20/4720/6675456).
+
+
 ```{r}
 library(speckle)
 
 source("../inst/extdata/convertDataToList.R")
 ```
+
+
+We first need to use the `convertDataToList` function to transfer the proportion data, i.e. the cell type deconvolution result, into the data that can be used by propeller.
 
 
 ```{r}
@@ -1146,6 +1158,9 @@ propslist <- convertDataToList(subset_prop,
                                transform="asin",
                                scale.fac=colData(spe_sub)$AOINucleiCount)
 ```
+
+
+Similar to using `limma` to perform DE analysis, propeller takes a model.matrix to conduct statistical test.
 
 
 ```{r}
@@ -1159,6 +1174,9 @@ contr <- makeContrasts(B_cell_zone - T_cell_zone,levels=design)
 
 outs <- propeller.ttest(propslist, design, contr, robust=TRUE,trend=FALSE, sort=TRUE)
 ```
+
+
+Finally, we can visualise the results in violin plots. In this case, as expected, comparing B cell zone to T cell zone tissue fragments from the human lymph node, we can observe more naive B cells in B cell zone and more naive T cells in T cell zone.
 
 
 ```{r fig.width=10}
