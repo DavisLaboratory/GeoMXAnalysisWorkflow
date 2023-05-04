@@ -37,6 +37,7 @@ The following key R packages will be used:
 | Introduction & setup                                            | 10m  |
 | Part 1. Processing and analysing the data using standR          | 45m  |
 | Part 2. Performing DE analysis and GSEA                         | 45m  |
+| Part 3. Cell type deconvolution and proportion analysis         | 30m  |
 | Q & A                                                           | 10m  |
 
 
