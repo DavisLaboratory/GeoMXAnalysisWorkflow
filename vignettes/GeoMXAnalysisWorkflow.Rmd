@@ -56,7 +56,6 @@ library(vissE)
 library(GSEABase)
 library(msigdb)
 library(ggalluvial)
-library(ExperimentHub)
 
 #automatically create a bib database for R packages
 knitr::write_bib(c(
