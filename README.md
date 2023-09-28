@@ -8,7 +8,7 @@ The workshop will be organised into two broad sections:
 * Processing and analysing the data using standR
 * Performing DE analysis and GSEA
 
-Detailed material can be found [here](https://davislaboratory.github.io/GeoMxAnalysisWorkflow/).
+Detailed material can be found [here](https://davislaboratory.github.io/GeoMXAnalysisWorkflow/).
 
 ## Pre-requisites 
 
