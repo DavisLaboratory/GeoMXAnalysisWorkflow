@@ -587,13 +587,13 @@ In this case, the batch effect is based on the slides (SlideName) and factors of
 
 spe_lrb <- geomxBatchCorrection(spe,
                        batch = colData(spe)$SlideName, method = "Limma",
-                       design = model.matrix(~Type, data = colData(spe))[,-1])
+                       design = model.matrix(~Type, data = colData(spe)))
 ```
 
 
 Once again, we use the respective QC plots like PCA to inspect and assess the effectiveness of the applied batch correction process.
 
-In this instance, using `limma::removeBatchEffect` approach seems to be over-corrected since we specifying the `batch` parameter as slide, however slide is confounded with the biology of interest.  
+In this instance, using `limma::removeBatchEffect` approach seems to be working  well.
 
 
 ```{r}
@@ -621,7 +621,7 @@ This assessment can be conducted by using the `plotClusterEvalStats` function pr
 
 Here we present the output for the summarised statistics for the two normalization methods in this workshop (i.e. RUV4 and Limma ) as well as the uncorrected data. Scores for each method will be presented as a barplot scores of the six summarized statistics (as above) under two sections (*biology* and *batch*). As a general rule, for the *biology* of interest defined in the batch correction process, a higher score is considered a good outcome. On the other hand, for the batch, a smaller score will be the preferred outcome.
 
-We can see from the results that when it comes to stratifying based on biological factors (sub-tissue types) or quantifying the amount of clustering due to batch effects for this dataset, `RUV4` outperforms `limma` in most cases. 
+We can see from the results that when it comes to stratifying based on biological factors (sub-tissue types) or quantifying the amount of clustering due to batch effects for this dataset, `RUV4` and `limma` perform similarly. 
 
 ```{r fig.width=10, fig.height=7}
 spe_list <- list(spe, spe_ruv, spe_lrb)
