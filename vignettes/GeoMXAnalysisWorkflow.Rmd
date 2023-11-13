@@ -636,7 +636,7 @@ plotClusterEvalStats(spe_list = spe_list,
 
 In addition, we can visualize the outcomes using RLE plots of normalized count to determine which batch correction performs better for this dataset.
 
-Plotting both the RLEs for RUV4-corrected and limma-corrected data, we can clearly see that RUV4-corrected data has in general a more-closer-to-zero median RLE when compared to that for the limma-corrected data. Therefore, for the downstream differential expression analysis, we would suggest using  RUV4 as the batch correction method for this specific dataset.
+Plotting both the RLEs for RUV4-corrected and limma-corrected data, we can see they perform similarly. Therefore, for the downstream differential expression analysis, we can use either RUV4 or limma as the batch correction method for this specific dataset.
 
 ```{r fig.width=10, fig.height=5}
 plotRLExpr(spe_ruv, assay = 2, color = SlideName) + ggtitle("RUV4")
