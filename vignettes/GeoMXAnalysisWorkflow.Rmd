@@ -1048,35 +1048,62 @@ Instead of performing DE analysis on the GeoMx data, we can also perform cellula
 
 Cellular deconvolution (or cell type composition or cell proportion estimation) is a technique that estimates the proportions of different cell types in samples collected from a tissue.
 
-In the `standR` package, we can use the `prepareSpatialDecon` function for communicating the `SpatialExperiment` object to the R package `SpatialDecon` to perform cellular deconvolution. However, since `SpatialDecon` requires negative probes to establish background for the data, we need to re-construct the `SpatialExperiment` with parameter `rmNegProbe` set to FALSE to disable the removal of negative probes, then re-run the QC steps.
+In the `standR` package, we can use `prepareSpatialDecon` to prepare a `SpatialExperiment` object for cellular deconvolution with `SpatialDecon`. Since `SpatialDecon` requires negative probes to estimate background, we re-import the data with `rmNegProbe = FALSE`, then repeat the QC steps while retaining these probes. By default, `prepareSpatialDecon` uses the existing `logcounts` assay and converts its log2 values to linear values, as required by `SpatialDecon`.
 
 
 ```{r}
 library(SpatialDecon)
 
+# Retain negative probes so expression and background undergo the same processing.
 spe <- readGeoMx(countFile, sampleAnnoFile, featureAnnoFile, rmNegProbe = FALSE)
 
-spe <- addPerROIQC(spe, rm_genes = TRUE)
+# Apply gene QC while keeping negative probes for background estimation.
+spe <- addPerROIQC(spe, rm_genes = FALSE)
+keep <- !rowData(spe)$genes_lowCount_overNsamples |
+  grepl("^NegProbe-WTX($|_)", rownames(spe))
+spe <- spe[keep, ]
 
 qc <- colData(spe)$AOINucleiCount > 150
 
 spe <- spe[, qc]
 
+# TMM normalization stores log2 CPM in the logcounts assay.
 spe_tmm <- geomxNorm(spe, method = "TMM")
 ```
 
 
 
 ```{r}
+# Use logcounts directly, converting expression and negative probes to linear values.
 spd <- prepareSpatialDecon(spe_tmm)
 ```
 
 
-The output object from the `prepareSpatialDecon` has two matrix, one is the normalised count (here we used the TMM-normalised count), second is the background model for deconvolution.
+The output of `prepareSpatialDecon` contains two matrices with matching dimensions: `normCount`, the normalized expression (here derived from TMM-normalized logcounts), and `backGround`, the expected background. Both are on the linear scale. For an assay that already contains linear values, such as output from `geomxNorm(log = FALSE)`, set `isLog = FALSE` to avoid another back-transformation.
 
 ```{r}
 names(spd)
 ```
+
+Alternatively, set `recomputeCPM = TRUE` to recompute linear CPM from the raw `counts` assay. This uses the same library sizes for expression and negative probes, and can also use raw negative probes stored in `metadata(spe)$NegProbes`. It replaces any normalization or batch correction in `logcounts`; leave it FALSE to retain the existing processed assay.
+
+```{r eval=FALSE}
+# Optional alternative: prepare linear CPM from raw counts instead of using logcounts.
+spd_cpm <- prepareSpatialDecon(spe_tmm, recomputeCPM = TRUE)
+```
+
+TMM normalization does not remove every batch effect, and residual effects on cell-type markers can bias the estimated proportions. If RUV4 correction is needed, apply it to an object that retains negative probes, then pass the corrected assay to `prepareSpatialDecon`. The default conversion to linear values preserves the correction. For example, the following optional workflow uses the same RUV4 settings as above:
+
+```{r eval=FALSE}
+# Start from the QC-filtered object that still contains negative probes.
+spe_decon_ruv <- findNCGs(spe, batch_name = "SlideName", top_n = 300)
+spe_decon_ruv <- geomxBatchCorrection(spe_decon_ruv, factors = "Type",
+                                    NCGs = metadata(spe_decon_ruv)$NCGs, k = 2)
+# Keep recomputeCPM = FALSE to retain the RUV4-corrected logcounts.
+spd_ruv <- prepareSpatialDecon(spe_decon_ruv)
+```
+
+Before choosing corrected input, check that RUV4 preserves cell-type signals and that the negative probes still provide an appropriate background estimate. A single negative-control row estimates background per ROI, but cannot establish that gene-specific batch correction is valid. Compare the results with the TMM baseline and, where possible, with morphology, immunostaining, or technical replicates. The negative probes used for background estimation serve a different purpose from the negative-control genes used by RUV4.
 
 Then we can follow the guide from [`SpatialDecon`](https://bioconductor.org/packages/release/bioc/vignettes/SpatialDecon/inst/doc/SpatialDecon_vignette.html) to perform deconvolution.
 
@@ -1092,9 +1119,10 @@ heatmap(sweep(safeTME, 1, apply(safeTME, 1, max), "/"),
         labRow = NA, margins = c(10, 5))
 ```
 
-Now we can perform deconvolution using `spatialdecon` function.
+Now we can perform deconvolution using the `spatialdecon` function.
 
 ```{r}
+# Supply expression and background on the same linear scale.
 res <- spatialdecon(norm = spd$normCount,
                    bg = spd$backGround,
                    X = safeTME,
@@ -1102,7 +1130,7 @@ res <- spatialdecon(norm = spd$normCount,
 ```
 
 
-We can then visualize the outcomes. Because we have too many samples from this datasets, we subset it to focus on tissue fragments from T cell zone and B cell zone.
+We can then visualize the results. To make the plots easier to interpret, we focus on tissue fragments from the T cell zone and B cell zone.
 
 
 ```{r}
@@ -1163,6 +1191,7 @@ Similar to using `limma` to perform DE analysis, propeller takes a model.matrix 
 
 
 ```{r}
+# Adjust the comparison for slide effects; this cannot undo bias in estimated proportions.
 design <- model.matrix(~ 0 + Type + SlideName, data = as.data.frame(colData(spe_sub)))
 
 colnames(design) <- str_remove(colnames(design), pattern = "Type") %>%
